@@ -1,0 +1,22 @@
+{
+    "compilerOptions": {
+        "baseUrl": ".",
+        "jsx": "react",
+        "module": "commonjs",
+        "outDir": "./dist/",
+        "paths": {
+            "*": [ "./types/*" ],
+        },
+        "sourceMap": true,
+        "target": "es6",
+        "typeRoots": [ "./types", "./node_modules/@types"]
+    },
+    "include": [
+        "./src/**/*"
+    ],
+    "exclude": [
+        "node_modules",
+        "**/*.spec.(ts|tsx|jsx|js)",
+        "**/*.test.(ts|tsx|jsx|js)"
+    ]
+}
