@@ -50,6 +50,10 @@ module.exports = {
       {
         test: /\.js$/,
         loader: 'ify-loader'
+      },
+      {
+        test: /\.txt$/,
+        use: 'raw-loader'
       }
     ]
   },

@@ -2989,7 +2989,7 @@ dc-react@^0.0.3:
     react "^15.3.2"
     react-dom "^15.3.2"
 
-dc@^2.0.0, dc@^2.0.0-beta.32:
+dc@^2.0.0-beta.32:
   version "2.2.1"
   resolved "https://registry.yarnpkg.com/dc/-/dc-2.2.1.tgz#dc5c61963b3751b72f044e494bcf7d9f7770df2a"
   dependencies:
@@ -7174,6 +7174,10 @@ raw-body@2.3.2:
     iconv-lite "0.4.19"
     unpipe "1.0.0"
 
+raw-loader@^0.5.1:
+  version "0.5.1"
+  resolved "https://registry.yarnpkg.com/raw-loader/-/raw-loader-0.5.1.tgz#0c3d0beaed8a01c966d9787bf778281252a979aa"
+
 rc@^1.2.7:
   version "1.2.8"
   resolved "https://registry.yarnpkg.com/rc/-/rc-1.2.8.tgz#cd924bf5200a075b83c188cd6b9e211b7fc0d3ed"
@@ -7216,12 +7220,6 @@ react-datetime@^2.14.0:
     object-assign "^3.0.0"
     prop-types "^15.5.7"
     react-onclickoutside "^6.5.0"
-
-"react-dc@https://github.com/madbonkey/react-dc.git":
-  version "1.0.6"
-  resolved "https://github.com/madbonkey/react-dc.git#0ff7265882a2bb032fc35c1a0155758db52448a0"
-  dependencies:
-    dc "^2.0.0"
 
 react-docgen-typescript-webpack-plugin@1.1.0:
   version "1.1.0"

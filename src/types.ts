@@ -9,3 +9,14 @@ export interface NamedEntity {
 }
 
 export interface NoProps { }
+
+export interface Record {
+  id: string;
+  author: string;
+  gender: string;
+  year: number;
+  title: string;
+  venue: string;
+  inCitationsCount: number;
+  outCitationsCount: number;
+}
