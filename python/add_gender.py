@@ -65,8 +65,9 @@ if __name__ == "__main__":
         for author in paper["authors"]:
             authors_count += 1
             full_name = author['name']
-            author['first_name'] = gender.determineFirstName(full_name.split())
-            author['gender'] = gender.determineFromDictionary(author['first_name'])
+            first_name = gender.determineFirstName(full_name.split())
+            author['first_name'] = first_name
+            author['gender'] = gender.determineFromDictionary(first_name)
             #TODO: gender.determineGender is supposed to be better, but throws a decoding error?
 
 
