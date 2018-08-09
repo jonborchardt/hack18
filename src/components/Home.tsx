@@ -19,174 +19,303 @@ import * as dc from 'dc';
 
 import { EmptyRouteAwareComponentProps } from '../util';
 import ResetFilters from './ResetFilters';
-import {Record} from '../types';
+import { Record, Gender, Author, GenderCount } from '../types';
+import Chart from './Chart';
 
 interface Props {
   className?: string;
 }
 
 class RecordCrossfilterContext {
+  All = 'All';
+
   public data;
   public crossfilter;
   public groupAll;
+
   public bubbleYearDimension;
   public genderYearDimension;
-  public femaleYearGroup;
-  public maleYearGroup;
-  public barYearDimension;
-  public barYearGroup;
-  public genderDimension;
-  public genderGroup;
+  public uniqueNameYearDimension;
+  public percentFemaleDimension;
   public venueDimension;
-  public venueGroup;
-  public inCitationsDimension;
-  public inCitationsGroup;
-  public outCitationsDimension;
-  public outCitationsGroup;
+  public inCitationsDimensions;
+  public outCitationsDimensions;
+  public firstFemaleAuthorPositionDimension;
 
-  public _yearlyPerformanceGroup;
+  public femalePercentYearGroup;
+  public malePercentYearGroup;
+  public percentFemaleGroup;
+  public venueGroup;
+  public inCitationsGroups;
+  public outCitationsGroups;
+  public firstFemaleAuthorPositionGroup;
+
+  public _citationsGroup;
+  public _bubbleYearGroup;
+  public _yearUniqueNameGroup;
 
   constructor(data: Record[]) {
     this.data = data;
     this.crossfilter = crossfilter(data);
     this.groupAll = this.crossfilter.groupAll();
-    this.bubbleYearDimension = this.crossfilter.dimension(d => 
-      d.year?d.year.toString(): 'unknown'
-    );
-    this.genderYearDimension = this.crossfilter.dimension(d => 
-      d.year?d.year.toString(): 'unknown'
-    );
-    this.femaleYearGroup = this.genderYearDimension.group().reduceSum(d=>d.gender==='female' ? 1 : 0);
-    this.maleYearGroup = this.genderYearDimension.group().reduceSum(d=>d.gender==='male' ? 1 : 0);
-    this.barYearDimension = this.crossfilter.dimension(d => 
-      d.year?d.year.toString(): 'unknown'
-    );
-    this.barYearGroup = this.barYearDimension.group();
-    this.genderDimension = this.crossfilter.dimension(d => d.gender);
-    this.genderGroup = this.genderDimension.group();
-    this.venueDimension = this.crossfilter.dimension(d => d.venue);
+
+    this.bubbleYearDimension = this.crossfilter.dimension((d: Record) => d.year || 0);
+    this.genderYearDimension = this.crossfilter.dimension((d: Record) => d.year || 0);
+    this.uniqueNameYearDimension = this.crossfilter.dimension((d: Record) => d.year || 0);
+    this.percentFemaleDimension = this.crossfilter.dimension((d: Record) => d.percentFemaleAuthor || 0);
+    this.venueDimension = this.crossfilter.dimension((d: Record) => d.venue);
+    this.inCitationsDimensions = [];
+    this.inCitationsDimensions[Gender.female] = this.crossfilter.dimension((d: Record) => Math.min(30, d.inCitationsCounts[Gender.female] || 0));
+    this.inCitationsDimensions[Gender.male] = this.crossfilter.dimension((d: Record) => Math.min(30, d.inCitationsCounts[Gender.male] || 0));
+    this.outCitationsDimensions = [];
+    this.outCitationsDimensions[Gender.female] = this.crossfilter.dimension((d: Record) => Math.min(30, d.outCitationsCounts[Gender.female] || 0));
+    this.outCitationsDimensions[Gender.male] = this.crossfilter.dimension((d: Record) => Math.min(30, d.outCitationsCounts[Gender.male] || 0));
+    this.firstFemaleAuthorPositionDimension = this.crossfilter.dimension((d: Record) => d.firstFemalePosition);
+
+    this.femalePercentYearGroup = this.genderYearDimension.group().reduceSum((d: Record) => d.percentFemaleAuthor || 0);
+    this.malePercentYearGroup = this.genderYearDimension.group().reduceSum((d: Record) => 1 - d.percentFemaleAuthor || 0);
+    this.percentFemaleGroup = this.percentFemaleDimension.group((val) => { return Math.round((val * 6)) / 6; });
     this.venueGroup = this.venueDimension.group();
-    this.inCitationsDimension = this.crossfilter.dimension(d => d.inCitationsCount);
-    this.inCitationsGroup = this.inCitationsDimension.group();
-    this.outCitationsDimension = this.crossfilter.dimension(d => d.outCitationsCount);
-    this.outCitationsGroup = this.outCitationsDimension.group();
+    this.inCitationsGroups = [];
+    this.inCitationsGroups[Gender.female] = this.inCitationsDimensions[Gender.female].group();
+    this.inCitationsGroups[Gender.male] = this.inCitationsDimensions[Gender.male].group();
+    this.outCitationsGroups = [];
+    this.outCitationsGroups[Gender.female] = this.outCitationsDimensions[Gender.female].group();
+    this.outCitationsGroups[Gender.male] = this.outCitationsDimensions[Gender.male].group();
+    this.firstFemaleAuthorPositionGroup = this.firstFemaleAuthorPositionDimension.group();
   }
 
-  get yearlyPerformanceGroup() {
-    if (this._yearlyPerformanceGroup) {
-      return this._yearlyPerformanceGroup;
+  get bubbleYearGroup() {
+    if (this._bubbleYearGroup) {
+      return this._bubbleYearGroup;
     }
-
-    this._yearlyPerformanceGroup = this.bubbleYearDimension.group().reduce(
-      (p, v) => {
+    this._bubbleYearGroup = this.bubbleYearDimension.group().reduce(
+      (p, v: Record) => {
         ++p.count;
         p.year = v.year;
-        p.inCitations += v.inCitationsCount;
-        p.outCitations +=  v.outCitationsCount;
-        p.genderIndex += (v.gender==='female'?1:-1);
+        p.citationIndex += (v.percentOutCiteFemale || 0);
+        p.genderIndex += (v.percentFemaleAuthor || 0);
         return p;
       },
       (p, v) => {
         --p.count;
-        p.inCitations -= v.inCitationsCount;
-        p.outCitations -=  v.outCitationsCount;
-        p.genderIndex -= (v.gender==='female'?1:-1);
+        p.citationIndex -= (v.percentOutCiteFemale || 0);
+        p.genderIndex -= (v.percentFemaleAuthor || 0);
         return p;
       },
       () => {
         return {
-          year: 0,
+          year: '',
           count: 0,
-          inCitations: 0,
-          outCitations: 0,
+          citationIndex: 0,
           genderIndex: 0
         };
       }
     );
+    return this._bubbleYearGroup;
+  }
 
-    return this._yearlyPerformanceGroup;
+  get yearUniqueNameGroup() {
+    if (this._yearUniqueNameGroup) {
+      return this._yearUniqueNameGroup;
+    }
+    this._yearUniqueNameGroup = this.uniqueNameYearDimension.group().reduce(
+      (p, v: Record) => {
+        v.authors.forEach(a => {
+          if (!p.uniqueNamesByGender[a.gender][a.name]) {
+            p.uniqueNamesByGender[a.gender][a.name] = 1;
+          } else {
+            p.uniqueNamesByGender[a.gender][a.name]++;
+          }
+        })
+
+        return p;
+      },
+      (p, v: Record) => {
+        v.authors.forEach(a => {
+          p.uniqueNamesByGender[a.gender][a.name]--;
+        })
+        return p;
+      },
+      () => {
+        return {
+          uniqueNamesByGender: { 'male': {}, 'female': {} }
+        };
+      }
+    );
+    return this._yearUniqueNameGroup;
   }
 }
 
-function download(content, fileName, contentType) {
-  var a = document.createElement('a');
-  var file = new Blob([content], {type: contentType});
-  a.href = URL.createObjectURL(file);
-  a.download = fileName;
-  a.click();
+interface State {
+  loadedData: Record[];
+  getCrossfilterContextFunc: any;
+  key: string;
 }
 
 // Home Page Content
-const Home: React.SFC<EmptyRouteAwareComponentProps<Props>> = props => {
-  let crossfilterContext = null;
-  function getCrossfilterContext(callback) {
-    if (!crossfilterContext) {
-      const convertData = false;
-      if(convertData) {
-        const ox: Record[] = [];
-        const recordsx = require('../assets/data/sample-S2-records.txt');
-        recordsx.split('\n').forEach(s => {
-          if(s && s.year){
-            const j = JSON.parse(s);
-              j.authors.forEach((author, aindex) => {
-              ox.push({
-                id: (j.id+(aindex>0?'_aindex':'')),
-                author: author.name,
-                gender: (Math.random()>0.5?'female':'male'),
-                year: j.year,
-                title: j.title || 'Unknown',
-                venue: j.venue || j.journalName || 'Unknown',
-                inCitationsCount: (j.inCitations?j.inCitations.length:0),
-                outCitationsCount: (j.outCitations?j.outCitations.length:0)
-              });
-            });
-          }
-        });
-        download(JSON.stringify(ox), 'records.json', 'text/plain');
-      }
+class Home extends React.Component<EmptyRouteAwareComponentProps<Props>, State> {
+  constructor(props: EmptyRouteAwareComponentProps<Props>) {
+    super(props);
 
-      const vals = require('../assets/data/records.json');
-      const start = Date.now();
-      console.log('start');
-      crossfilterContext = new RecordCrossfilterContext(vals);
-      console.log('end 2 ', (Date.now()-start)/1000);
+    const vals = require('../assets/data/records.json');
+    this.state = {
+      loadedData: [],
+      getCrossfilterContextFunc: undefined,
+      key: "unloaded"
     }
-    if (!callback) {
-      return crossfilterContext;
-    }
-    callback(crossfilterContext);
+
+    this.saveData = this.saveData.bind(this);
+    this.parseFile = this.parseFile.bind(this);
+    this.loadLines = this.loadLines.bind(this);
+    this.loadCrossfilter = this.loadCrossfilter.bind(this);
   }
 
-  return (
-    <div className={props.className}>
-      <ChartContainer className="container" crossfilterContext={getCrossfilterContext}>
-        <Title>
-          <h1>Semantic Scholar Records</h1>
-          <DataCount
-            dimension={ctx => ctx.crossfilter}
-            group={ctx => ctx.groupAll}
-          />
-          &nbsp;papers selected (<ResetFilters />)
+  download(content, fileName, contentType) {
+    var a = document.createElement('a');
+    var file = new Blob([content], { type: contentType });
+    a.href = URL.createObjectURL(file);
+    a.download = fileName;
+    a.click();
+  }
+
+  saveData() {
+    this.download(JSON.stringify(this.state.loadedData), 'records.json', 'text/plain');
+  }
+
+  parseFile(file) {
+    var fileSize = file.size;
+    var chunkSize = 1024 * 1024;
+    var offset = 0;
+    var readBlock = null;
+    var _this = this;
+
+    let count = 1024;
+
+    var onLoadHandler = function (evt) {
+      if (evt.currentTarget.error == null) {
+        const lines = (event.currentTarget as any).result;
+        const start = lines.indexOf("{\"entities"); // todo: this is a huge hack
+        //const start = lines.indexOf("{\"outCitati"); // todo: this is a huge hack
+        const lastReturn = lines.lastIndexOf('\n');
+        offset += lastReturn;
+
+        if (start > -1 && lastReturn > -1 && count-- > 0) {
+          _this.loadLines(lines.substring(start, lastReturn));
+        } else {
+          _this.loadCrossfilter(_this.state.loadedData);
+          return;
+        }
+      } else {
+        console.log(evt.currentTarget.error);
+        return;
+      }
+      if (offset >= fileSize) {
+        _this.loadCrossfilter(_this.state.loadedData);
+        return;
+      }
+
+      readBlock(offset, chunkSize, file);
+    }
+
+    readBlock = function (_offset, length, _file) {
+      var r = new FileReader();
+      var blob = _file.slice(_offset, length + _offset);
+      r.onload = onLoadHandler;
+      r.readAsText(blob);
+    }
+
+    readBlock(offset, chunkSize, file);
+  }
+
+  loadCrossfilter(v) {
+    this.saveData();
+    this.setState({
+      key: "loaded",
+      getCrossfilterContextFunc: (callback?) => { callback(new RecordCrossfilterContext(v)); }
+    })
+  }
+
+  venues = ['Nature',
+    'The Journal of biological chemistry',
+    'Science',
+    'Proceedings of the National Academy of Sciences of the United States of America',
+    'Lancet',
+    'PloS one',
+    'Biochimica et biophysica acta',
+    'Biochemical and biophysical research communications',
+    'ArXiv',
+    'Physical review letters'];
+
+  loadLines(lines: string) {
+    let { loadedData } = this.state;
+
+    lines.split('\n').forEach((s, i) => {
+      if (s) {
+        const j = JSON.parse(s);
+        if (j.year && j.authors && j.venue && j.title) {
+          const authors = j.authors.map(a => { return { name: a.name, gender: (Math.random() > 0.5 ? Gender.female : Gender.male) } }) // temp
+          const percentOutCiteFemale = Math.random(); // temp
+          const percentInCiteFemale = Math.random(); // temp
+          loadedData.push({
+            authors: authors,
+            year: j.year,
+            venue: this.venues[Math.floor(Math.random() * this.venues.length)], // temp
+            inCitationsCounts: { male: Math.round(j.inCitations.length * (1 - percentInCiteFemale)), female: Math.round(j.inCitations.length * percentInCiteFemale) }, //temp
+            outCitationsCounts: { male: Math.round(j.outCitations.length * (1 - percentOutCiteFemale)), female: Math.round(j.outCitations.length * percentOutCiteFemale) }, //temp
+            // augmented
+            percentFemaleAuthor: authors.filter(a => a.gender === Gender.female).length / authors.length,
+            firstFemalePosition: authors.findIndex(a => a.gender === Gender.female) + 1,
+            percentOutCiteFemale: percentOutCiteFemale
+          });
+        }
+      }
+    });
+
+    this.setState({ loadedData }, () => console.log(this.state.loadedData.length));
+  }
+
+  yearScale = d3.scale.linear().domain([1944, 2018]);
+
+  render() {
+    return (
+      <div className={this.props.className} >
+        {this.state.key !== "loaded" ? <input type="file" onChange={(e) => this.parseFile(e.target.files[0])} /> : null}
+        {this.state.key === "loaded" ? (<ChartContainer className="container" crossfilterContext={this.state.getCrossfilterContextFunc}>
+          <Title>
+            <h1>Semantic Scholar Records</h1>
+            <DataCount
+              dimension={ctx => ctx.crossfilter}
+              group={ctx => ctx.groupAll}
+            />
+            &nbsp;papers selected (<ResetFilters />)
           </Title>
           <Filters>
             <LeftFilters>
-              <Chart>
-                <ChartTitle>Gender</ChartTitle>
+              <Chart title="Percent Female Author">
                 <PieChart
-                  dimension={ctx => ctx.genderDimension}
-                  group={ctx => ctx.genderGroup}
+                  dimension={ctx => ctx.percentFemaleDimension}
+                  group={ctx => ctx.percentFemaleGroup}
+                  width={180} height={180}
+                  radius={80} innerRadius={30}
+                  label={d => `%${Math.round(d.key * 100)}`}
+                />
+              </Chart>
+              <Chart title="First Female Author Position">
+                <PieChart
+                  dimension={ctx => ctx.firstFemaleAuthorPositionDimension}
+                  group={ctx => ctx.firstFemaleAuthorPositionGroup}
                   width={180} height={180}
                   radius={80} innerRadius={30}
                 />
               </Chart>
-              <Chart>
-                <ChartTitle>Venue</ChartTitle>
+              <Chart title="Venue">
                 <RowChart
                   dimension={ctx => ctx.venueDimension}
                   group={ctx => ctx.venueGroup}
-                  width={180} height={1800}
+                  width={180} height={250}
                   elasticX={true}
-                  margins={{top: 20, left: 10, right: 10, bottom: 20}}
+                  margins={{ top: 20, left: 10, right: 10, bottom: 20 }}
                   label={d => d.key}
                   title={d => d.value}
                   xAxis={axis => axis.ticks(4)}
@@ -194,110 +323,141 @@ const Home: React.SFC<EmptyRouteAwareComponentProps<Props>> = props => {
               </Chart>
             </LeftFilters>
             <RightFilters>
-              <ChartTitle>Gender Difference By Year</ChartTitle>
-              <BubbleChart className="row"
-                dimension={ctx => ctx.bubbleYearDimension}
-                group={ctx => ctx.yearlyPerformanceGroup}
-                width={990} height={250}
-                colorAccessor={d => d.value.outCitations}
-                keyAccessor={p => p.value.year}
-                valueAccessor={p => p.value.genderIndex}
-                radiusValueAccessor={p => p.value.count}
-                title={d => ''}
-                x={d3.scale.linear().domain([1944, 2018])}
-                y={d3.scale.linear().domain([-15, 15])}
-                r={d3.scale.linear().domain([0, 300])}
-                colorDomain={[0, 50]}
-              />
-              <RightRowFilters>
-                <Chart>
-                  <ChartTitle>Year</ChartTitle>
-                  <BarChart
-                    dimension={ctx => ctx.barYearDimension}
-                    group={ctx => ctx.barYearGroup}
-                    width={320}
-                    height={180}
-                    elasticY={true}
-                    centerBar={true}
-                    gap={1}
-                    round={dc.round.floor}
-                    alwaysUseRounding={true}
-                    x={d3.scale.linear().domain([1944, 2018])}
-                    renderHorizontalGridLines={true}
-                  />
-                </Chart>
-                <Chart>
-                  <ChartTitle>In Citations</ChartTitle>
-                  <BarChart
-                    dimension={ctx => ctx.inCitationsDimension}
-                    group={ctx => ctx.inCitationsGroup}
-                    width={320}
-                    height={180}
-                    elasticY={true}
-                    centerBar={true}
-                    gap={1}
-                    round={dc.round.floor}
-                    alwaysUseRounding={true}
-                    x={d3.scale.linear().domain([0, 60])}
-                    renderHorizontalGridLines={true}
-                  />
-                </Chart>
-                <Chart>
-                  <ChartTitle>Out Citations</ChartTitle>
-                  <BarChart
-                    dimension={ctx => ctx.outCitationsDimension}
-                    group={ctx => ctx.outCitationsGroup}
-                    width={320}
-                    height={180}
-                    elasticY={true}
-                    centerBar={true}
-                    gap={1}
-                    round={dc.round.floor}
-                    alwaysUseRounding={true}
-                    x={d3.scale.linear().domain([0, 60])}
-                    renderHorizontalGridLines={true}
-                  />
-                </Chart>
-              </RightRowFilters>
-              <Chart>
-                <ChartTitle>Total Records By Year</ChartTitle>
+              <Chart
+                title="Gender And Citations By Year"
+                subTitle="Color: year, Size: count, x: Percent of women in authors, y: Percent of out citations to other women authors">
+                <BubbleChart className="row"
+                  dimension={ctx => ctx.bubbleYearDimension}
+                  group={ctx => ctx.bubbleYearGroup}
+                  width={990} height={250}
+                  keyAccessor={p => p.value.citationIndex / (p.value.count || 1)}
+                  valueAccessor={p => p.value.genderIndex / (p.value.count || 1)}
+                  radiusValueAccessor={p => p.value.count}
+                  title={d => ''}
+                  x={d3.scale.linear().domain([0, 1])}
+                  y={d3.scale.linear().domain([0, 1])}
+                  r={d3.scale.linear().domain([0, 100000])}
+                />
+              </Chart>
+              <Chart
+                title="Unique Names per Year"
+                subTitle="Are the number of female authors increasing?">
                 <LineChart
-                  dimension={ctx => ctx.genderYearDimension}
-                  group={ctx => [ctx.femaleYearGroup, 'Female']}
+                  dimension={ctx => ctx.uniqueNameYearDimension}
+                  group={ctx => [ctx.yearUniqueNameGroup, 'Female']}
                   renderArea={true}
                   width={990}
                   height={200}
                   transitionDuration={200}
-                  margins={{top: 30, right: 50, bottom: 25, left: 40}}
-                  mouseZoomable={true}
-                  x={d3.scale.linear().domain([1944, 2018])}
-                  round={d3.time.month.round}
-                  xUnits={d3.time.months}
+                  margins={{ top: 30, right: 50, bottom: 25, left: 40 }}
+                  mouseZoomable={false}
+                  x={this.yearScale}
                   elasticY={true}
                   renderHorizontalGridLines={true}
                   legend={dc.legend().x(800).y(10).itemHeight(13).gap(5)}
-                  brushOn={false}
-                  valueAccessor={d => d.value}
-                  stack={ctx => [ctx.maleYearGroup, 'Male', (d) => { return d.value; }]}
+                  brushOn={true}
+                  valueAccessor={d => {
+                    const obj = d.value.uniqueNamesByGender[Gender.female];
+                    const set = obj ? Object.keys(obj).map(key => obj[key]).filter(v => v > 0) : [];
+                    return set.length;
+                  }}
+                  stack={ctx => [ctx.yearUniqueNameGroup, 'Male', (d) => {
+                    const obj = d.value.uniqueNamesByGender[Gender.male];
+                    const set = obj ? Object.keys(obj).map(key => obj[key]).filter(v => v > 0) : [];
+                    return set.length;
+                  }]}
                 />
               </Chart>
+              <Chart
+                title="Papers per Year"
+                subTitle="How many papers are partially or fully authored by women?">
+                <LineChart
+                  dimension={ctx => ctx.genderYearDimension}
+                  group={ctx => [ctx.femalePercentYearGroup, 'Female Contribution']}
+                  renderArea={true}
+                  width={990}
+                  height={200}
+                  transitionDuration={200}
+                  margins={{ top: 30, right: 50, bottom: 25, left: 40 }}
+                  mouseZoomable={false}
+                  x={this.yearScale}
+                  elasticY={true}
+                  renderHorizontalGridLines={true}
+                  legend={dc.legend().x(800).y(10).itemHeight(13).gap(5)}
+                  brushOn={true}
+                  valueAccessor={d => d.value}
+                  stack={ctx => [ctx.malePercentYearGroup, 'Male Contribution', (d) => { return d.value; }]}
+                />
+              </Chart>
+              <RightRowFilters>
+                <Chart title="In Female Citations">
+                  <BarChart
+                    dimension={ctx => ctx.inCitationsDimensions[Gender.female]}
+                    group={ctx => ctx.inCitationsGroups[Gender.female]}
+                    width={250}
+                    height={180}
+                    elasticY={true}
+                    centerBar={true}
+                    gap={1}
+                    round={dc.round.floor}
+                    alwaysUseRounding={true}
+                    x={d3.scale.linear().domain([1, 30])}
+                    renderHorizontalGridLines={true}
+                  />
+                </Chart>
+                <Chart title="In Male Citations">
+                  <BarChart
+                    dimension={ctx => ctx.inCitationsDimensions[Gender.male]}
+                    group={ctx => ctx.inCitationsGroups[Gender.male]}
+                    width={250}
+                    height={180}
+                    elasticY={true}
+                    centerBar={true}
+                    gap={1}
+                    round={dc.round.floor}
+                    alwaysUseRounding={true}
+                    x={d3.scale.linear().domain([1, 30])}
+                    renderHorizontalGridLines={true}
+                  />
+                </Chart>
+                <Chart title="Out Female Citations">
+                  <BarChart
+                    dimension={ctx => ctx.outCitationsDimensions[Gender.female]}
+                    group={ctx => ctx.outCitationsGroups[Gender.female]}
+                    width={250}
+                    height={180}
+                    elasticY={true}
+                    centerBar={true}
+                    gap={1}
+                    round={dc.round.floor}
+                    alwaysUseRounding={true}
+                    x={d3.scale.linear().domain([1, 30])}
+                    renderHorizontalGridLines={true}
+                  />
+                </Chart>
+                <Chart title="Out Male Citations">
+                  <BarChart
+                    dimension={ctx => ctx.outCitationsDimensions[Gender.male]}
+                    group={ctx => ctx.outCitationsGroups[Gender.male]}
+                    width={250}
+                    height={180}
+                    elasticY={true}
+                    centerBar={true}
+                    gap={1}
+                    round={dc.round.floor}
+                    alwaysUseRounding={true}
+                    x={d3.scale.linear().domain([1, 30])}
+                    renderHorizontalGridLines={true}
+                  />
+                </Chart>
+              </RightRowFilters>
             </RightFilters>
-        </Filters>
-    </ChartContainer>
-  </div>
-  );
+          </Filters>
+        </ChartContainer>) : null}
+      </div>
+    );
+  }
 };
-
-const Chart = styled.div`
-  margin: 10px;
-  display: flex;
-  flex-direction: column;
-`;
-
-const ChartTitle = styled.div`
-  margin-left: 35px;
-  font-weight: bold;
-`;
 
 const Title = styled.div`
   margin-bottom: 30px;
@@ -322,6 +482,7 @@ const RightRowFilters = styled.div`
 
 export default styled(withRouter(Home))`
 display: flex;
+flex-direction: column;
 font-size: 20px;
 
 .row {

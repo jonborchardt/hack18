@@ -12,7 +12,7 @@ const resetAll = (event) => {
   event.stopPropagation()
 };
 
-const ResetFilters : React.SFC <Props> = props => {
+const ResetFilters: React.SFC<Props> = props => {
   return (
     <a href="javascript:;" onClick={resetAll}>
       <span>reset filters</span>

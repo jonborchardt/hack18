@@ -1,3 +1,14 @@
+to run UI
+
+pull repo
+then run these commands:
+ yarn
+ yarn run start
+
+
+
+
+
 grab data from http://labs.semanticscholar.org/corpus/
 
 for i in `seq 0 39` ; do curl "https://s3-us-west-2.amazonaws.com/ai2-s2-research-public/open-corpus/corpus-2018-05-03/s2-corpus-$i.gz" --output "s2-corpus-$i.gz"; done
