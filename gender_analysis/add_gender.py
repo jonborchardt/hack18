@@ -71,13 +71,16 @@ if __name__ == "__main__":
     authors_count = 0
     with open(out_fn, 'w') as fout:
         for paper in tqdm(lazy_paper_reader(inp_fn)):
+            author_ls = []
             for author in paper["authors"]:
+                cur_author = {"name": author}
                 authors_count += 1
-                full_name = author['name']
-                first_name = gender.determineFirstName(full_name.split())
-                author['first_name'] = first_name
-                author['gender'] = gender.determineGender(full_name)
-                #TODO: gender.determineGender is supposed to be better, but throws a decoding error?
+                first_name = gender.determineFirstName(author.split())
+                cur_author['first_name'] = first_name
+                cur_author['gender'] = gender.determineGender(author)
+                author_ls.append(cur_author)
+
+            paper["authors"] = author_ls
             fout.write('{}\n'.format(json.dumps(paper)))
 
 
