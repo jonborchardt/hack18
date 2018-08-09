@@ -26,15 +26,25 @@ from legenderary.leGenderary import leGenderary
 
 options = { 'male'          : 'male',
             'female'        : 'female',
-            'androgynous'   : 'androgynous',
+            'androgynous'   : 'unknown',
             'unknown'       : 'unknown',
-            'maleConfirm'   : 'male needs confirmation',
-            'femaleConfirm' : 'female needs confirmation',
+            'maleConfirm'   : 'male',
+            'femaleConfirm' : 'female',
             'dict1'         : 'legenderary/dict1.txt',
             'dict2'         : 'legenderary/dict2.txt',
             'customDict'    : 'legenderary/custom.txt',
             'bingAPIKey'    : 'ABC123478ZML'
           }
+
+# Init leGenderary
+gender = leGenderary(options)
+
+def get_gender(full_name):
+    """
+    Return the gender of this name.
+    """
+    return gender.determineGender(full_name)
+
 
 if __name__ == "__main__":
 
@@ -48,8 +58,6 @@ if __name__ == "__main__":
     else:
         logging.basicConfig(level = logging.INFO)
 
-    # Init leGenderary
-    gender = leGenderary(options)
 
     # Load input file
     logging.info("Reading {}".format(inp_fn))
@@ -67,7 +75,7 @@ if __name__ == "__main__":
             full_name = author['name']
             first_name = gender.determineFirstName(full_name.split())
             author['first_name'] = first_name
-            author['gender'] = gender.determineFromDictionary(first_name)
+            author['gender'] = gender.determineGender(full_name)
             #TODO: gender.determineGender is supposed to be better, but throws a decoding error?
 
 
