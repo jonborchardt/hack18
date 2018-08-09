@@ -287,19 +287,19 @@ class leGenderary:
         if dictionary in definite:
             return dictionary
 
-        phonetics  = self.determineFromPhonetic(firstName)
-        if phonetics in definite:
-            self._addToDictionary(firstName, phonetics, self.options['customDict'])
-            return phonetics
+        # phonetics  = self.determineFromPhonetic(firstName)
+        # if phonetics in definite:
+        #     self._addToDictionary(firstName, phonetics, self.options['customDict'])
+        #     return phonetics
 
-        usetheweb  = self.determineFromInternet(fullName)
-        if usetheweb in definite:
-            if usetheweb == self.options['male']:
-                self._addToDictionary(firstName, self.options['maleConfirm'], self.options['customDict'])
-                return self.options['maleConfirm']
-            if usetheweb == self.options['female']:
-                self._addToDictionary(firstName, self.options['femaleConfirm'], self.options['customDict'])
-                return self.options['femaleConfirm']
+        # usetheweb  = self.determineFromInternet(fullName)
+        # if usetheweb in definite:
+        #     if usetheweb == self.options['male']:
+        #         self._addToDictionary(firstName, self.options['maleConfirm'], self.options['customDict'])
+        #         return self.options['maleConfirm']
+        #     if usetheweb == self.options['female']:
+        #         self._addToDictionary(firstName, self.options['femaleConfirm'], self.options['customDict'])
+        #         return self.options['femaleConfirm']
 
         if not required:
             return self.options['unknown']
