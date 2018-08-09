@@ -50,7 +50,7 @@ def lazy_paper_reader(fn):
     """
     Read jsonl file lazyly
     """
-    for line in open(inp_fn):
+    for line in open(fn):
         yield(json.loads(line.strip()))
 
 if __name__ == "__main__":
