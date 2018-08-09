@@ -9,7 +9,6 @@ from pprint import pformat
 from docopt import docopt
 from collections import defaultdict
 from operator import itemgetter
-import pandas as pd
 
 # Local imports
 import add_gender
