@@ -30,7 +30,7 @@ def get_gender_stats(id2paper):
         for _out in paper['outCitations']:
             if _out in id2paper:
                 out_authors.extend(id2paper[_out]['authors'])
-                
+
         in_genders = [auth['gender'] for auth in in_authors]
         out_genders = [auth['gender'] for auth in out_authors]
 

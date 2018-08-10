@@ -54,7 +54,9 @@ if __name__ == "__main__":
             gender_dict[author["gender"]][author["first_name"]] += 1
 
     for gender in gender_dict:
-        with open(os.path.join(out_fn, "{}.csv".format(gender)), 'w') as fout:
+        cur_fn = os.path.join(out_fn, "{}.csv".format(gender))
+        logging.info("Writing to {}".format(cur_fn))
+        with open(cur_fn, 'w') as fout:
             fout.write('\n'.join(["{},{}".format(name, count)
                                   for (name, count)
                                   in sorted(gender_dict[gender].iteritems(),
