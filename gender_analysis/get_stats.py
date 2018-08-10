@@ -35,9 +35,9 @@ def get_gender_stats(id2paper):
         out_genders = [auth['gender'] for auth in out_authors]
 
         in_fem, in_male, in_unknown = \
-                    in_genders.count('male'), in_genders.count('female'), in_genders.count('unknown')
+                    in_genders.count('female'), in_genders.count('male'), in_genders.count('unknown')
         out_fem, out_male, out_unknown = \
-                    out_genders.count('male'), out_genders.count('female'), out_genders.count('unknown')
+                    out_genders.count('female'), out_genders.count('male'), out_genders.count('unknown')
 
         stats.append({'authors' : paper['authors'],
                       'venue': paper['venue'],
