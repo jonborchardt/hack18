@@ -1,2 +1,12 @@
 kate,1
 kate,1
+paurush,0
+raphaël,0
+andré,0
+yugesh,0
+xinyi,1
+youn,1
+frédéric,0
+somsak,0
+jørn,0
+chuang,0
