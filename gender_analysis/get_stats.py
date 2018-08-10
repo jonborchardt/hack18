@@ -23,8 +23,6 @@ def get_gender_stats(id2paper):
         if i % 25000 == 0: print i
         if len(paper['authors']) == 0: continue
 
-        first_author = paper['authors'][0]
-
         in_authors, out_authors = list(), list()
         for _in in paper['inCitations']:
             if _in in id2paper:
@@ -41,8 +39,7 @@ def get_gender_stats(id2paper):
         out_fem, out_male, out_unknown = \
                     out_genders.count('male'), out_genders.count('female'), out_genders.count('unknown')
 
-        stats.append({'authors' : {'name' : first_author['name'],
-                                   'gender' : first_author['gender']},
+        stats.append({'authors' : paper['authors'],
                       'venue': paper['venue'],
                       'year' : paper['year'],
                       'inCitationsCount' : {'female' : in_fem,
@@ -70,7 +67,6 @@ def determine_first_name(full_name):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser('')
-    parser.add_argument('--num_workers', type=int, default=10)
     parser.add_argument('--subset', dest='subset_fname', type=str, required=True,
                         help='path to subset of S2 papers')
     parser.add_argument('--out', type=str, default='../data/citation_rates.json')
