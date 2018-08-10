@@ -12,9 +12,14 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+# Set default encoding to utf8
+import sys
+reload(sys)
+sys.setdefaultencoding('UTF8')
 
 import os
 import re
+import pdb
 import sys
 import time
 import json
@@ -273,7 +278,6 @@ class leGenderary:
 
 
     def determineGender(self, fullName, **kwargs):
-
         required   = True
 
         if 'required' in kwargs:
@@ -287,30 +291,16 @@ class leGenderary:
         if dictionary in definite:
             return dictionary
 
-        # phonetics  = self.determineFromPhonetic(firstName)
+        # try:
+        #     phonetics  = self.determineFromPhonetic(firstName)
+        # except:
+        #     return self.options['unknown']
         # if phonetics in definite:
         #     self._addToDictionary(firstName, phonetics, self.options['customDict'])
         #     return phonetics
 
-        # usetheweb  = self.determineFromInternet(fullName)
-        # if usetheweb in definite:
-        #     if usetheweb == self.options['male']:
-        #         self._addToDictionary(firstName, self.options['maleConfirm'], self.options['customDict'])
-        #         return self.options['maleConfirm']
-        #     if usetheweb == self.options['female']:
-        #         self._addToDictionary(firstName, self.options['femaleConfirm'], self.options['customDict'])
-        #         return self.options['femaleConfirm']
 
-        if not required:
-            return self.options['unknown']
-
-        random     = self._mostCommon([self.randomGuess(firstName) for i in range(0,5)])
-        if random in definite:
-            if random == self.options['male']:
-                return self.options['maleConfirm']
-            if random == self.options['female']:
-                return self.options['femaleConfirm']
-
+        return self.options['unknown']
 
     def parseFirstDataSet(self, fileName):
         names = {}
@@ -318,10 +308,16 @@ class leGenderary:
         line  = f.readline()
 
         while line:
+
+
             if line.startswith("#") or line.startswith("="):
                 pass
 
             parts = filter(lambda p: p.strip() != "", line.split(" "))
+
+            line = f.readline()
+            if parts[0].startswith('?'):
+                continue
 
             if "F" in parts[0]:
                 name   = parts[1].lower()
@@ -333,15 +329,15 @@ class leGenderary:
                 name   = parts[1].lower()
                 gender = self.options['androgynous']
 
-            if names.has_key(name):
-                pass
+            if names.has_key(name) or gender.startswith('?'):
+                continue
             if "+" in name:
                 for replacement in [ '', '-', ' ' ]:
                     name = name.replace('+', replacement).lower()
             else:
                 names[name] = gender
 
-            line = f.readline()
+
 
         f.close()
 

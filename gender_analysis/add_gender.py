@@ -46,6 +46,13 @@ def get_gender(full_name):
     return gender.determineGender(full_name)
 
 
+def lazy_paper_reader(fn):
+    """
+    Read jsonl file lazyly
+    """
+    for line in open(fn):
+        yield(json.loads(line.strip()))
+
 if __name__ == "__main__":
 
     # Parse command line arguments
@@ -60,30 +67,23 @@ if __name__ == "__main__":
 
 
     # Load input file
-    logging.info("Reading {}".format(inp_fn))
-    paper_jsons = [json.loads(line.strip())
-                   for line
-                   in open(inp_fn)]
-
-    logging.info("Read {} paper records".format(len(paper_jsons)))
-
     logging.info("Adding gender...")
     authors_count = 0
-    for paper in tqdm(paper_jsons):
-        for author in paper["authors"]:
-            authors_count += 1
-            full_name = author['name']
-            first_name = gender.determineFirstName(full_name.split())
-            author['first_name'] = first_name
-            author['gender'] = gender.determineGender(full_name)
-            #TODO: gender.determineGender is supposed to be better, but throws a decoding error?
+    with open(out_fn, 'w') as fout:
+        for paper in tqdm(lazy_paper_reader(inp_fn)):
+            author_ls = []
+            for author in paper["authors"]:
+                cur_author = {"name": author}
+                authors_count += 1
+                first_name = gender.determineFirstName(author.split())
+                cur_author['first_name'] = first_name
+                cur_author['gender'] = gender.determineGender(author)
+                author_ls.append(cur_author)
+
+            paper["authors"] = author_ls
+            fout.write('{}\n'.format(json.dumps(paper)))
 
 
     logging.info("Added gender to {} authors".format(authors_count))
 
-    # Write to file
-    logging.info("Writing output to {}".format(out_fn))
-    with open(out_fn, 'w') as fout:
-        fout.write('\n'.join([json.dumps(paper)
-                              for paper in paper_jsons]))
     logging.info("DONE")
