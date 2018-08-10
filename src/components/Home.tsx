@@ -38,6 +38,7 @@ class RecordCrossfilterContext {
   public uniqueNameYearDimension;
   public percentFemaleDimension;
   public venueDimension;
+  public bubbleVenueDimension;
   public inCitationsDimensions;
   public outCitationsDimensions;
   public firstFemaleAuthorPositionDimension;
@@ -52,6 +53,7 @@ class RecordCrossfilterContext {
 
   public _citationsGroup;
   public _bubbleYearGroup;
+  public _bubbleVenueGroup;
   public _yearUniqueNameGroup;
 
   constructor(data: Record[]) {
@@ -64,6 +66,7 @@ class RecordCrossfilterContext {
     this.uniqueNameYearDimension = this.crossfilter.dimension((d: Record) => d.year || 0);
     this.percentFemaleDimension = this.crossfilter.dimension((d: Record) => d.percentFemaleAuthor || 0);
     this.venueDimension = this.crossfilter.dimension((d: Record) => d.venue);
+    this.bubbleVenueDimension = this.crossfilter.dimension((d: Record) => d.venue);
     this.inCitationsDimensions = [];
     this.inCitationsDimensions[Gender.female] = this.crossfilter.dimension((d: Record) => Math.min(30, d.inCitationsCounts[Gender.female] || 0));
     this.inCitationsDimensions[Gender.male] = this.crossfilter.dimension((d: Record) => Math.min(30, d.inCitationsCounts[Gender.male] || 0));
@@ -113,6 +116,38 @@ class RecordCrossfilterContext {
       }
     );
     return this._bubbleYearGroup;
+  }
+
+  get bubbleVenueGroup() {
+    if (this._bubbleVenueGroup) {
+      return this._bubbleVenueGroup;
+    }
+    this._bubbleVenueGroup = this.bubbleVenueDimension.group().reduce(
+      (p, v: Record) => {
+        ++p.count;
+        p.year = v.year;
+        p.venue = v.venue;
+        p.citationIndex += (v.percentOutCiteFemale || 0);
+        p.genderIndex += (v.percentFemaleAuthor || 0);
+        return p;
+      },
+      (p, v) => {
+        --p.count;
+        p.citationIndex -= (v.percentOutCiteFemale || 0);
+        p.genderIndex -= (v.percentFemaleAuthor || 0);
+        return p;
+      },
+      () => {
+        return {
+          venue: '',
+          year: '',
+          count: 0,
+          citationIndex: 0,
+          genderIndex: 0
+        };
+      }
+    );
+    return this._bubbleVenueGroup;
   }
 
   get yearUniqueNameGroup() {
@@ -185,24 +220,25 @@ class Home extends React.Component<EmptyRouteAwareComponentProps<Props>, State> 
 
   parseFile(file) {
     var fileSize = file.size;
-    var chunkSize = 1024 * 1024;
+    var chunkSize = 1024 * 1024 * 8;
     var offset = 0;
     var readBlock = null;
     var _this = this;
 
-    let count = 1024;
+    let count = 10000000;
 
     var onLoadHandler = function (evt) {
       if (evt.currentTarget.error == null) {
         const lines = (event.currentTarget as any).result;
-        const start = lines.indexOf("{\"entities"); // todo: this is a huge hack
-        //const start = lines.indexOf("{\"outCitati"); // todo: this is a huge hack
+        //const start = lines.indexOf("{\"entities"); // todo: this is a huge hack
+        const start = lines.indexOf("{\"outCitati"); // todo: this is a huge hack
         const lastReturn = lines.lastIndexOf('\n');
         offset += lastReturn;
 
         if (start > -1 && lastReturn > -1 && count-- > 0) {
           _this.loadLines(lines.substring(start, lastReturn));
         } else {
+          //_this.saveData();
           _this.loadCrossfilter(_this.state.loadedData);
           return;
         }
@@ -211,6 +247,7 @@ class Home extends React.Component<EmptyRouteAwareComponentProps<Props>, State> 
         return;
       }
       if (offset >= fileSize) {
+        //_this.saveData();
         _this.loadCrossfilter(_this.state.loadedData);
         return;
       }
@@ -229,43 +266,60 @@ class Home extends React.Component<EmptyRouteAwareComponentProps<Props>, State> 
   }
 
   loadCrossfilter(v) {
-    this.saveData();
     this.setState({
       key: "loaded",
       getCrossfilterContextFunc: (callback?) => { callback(new RecordCrossfilterContext(v)); }
     })
   }
 
-  venues = ['Nature',
-    'The Journal of biological chemistry',
-    'Science',
-    'Proceedings of the National Academy of Sciences of the United States of America',
-    'Lancet',
-    'PloS one',
-    'Biochimica et biophysica acta',
-    'Biochemical and biophysical research communications',
-    'ArXiv',
-    'Physical review letters'];
+  venues = ['ArXiv',
+    'IEICE Transactions',
+    'Applied Mathematics and Computation',
+    'HCI',
+    'INTERSPEECH',
+    'Discrete Mathematics',
+    'European Journal of Operational Research',
+    'ICASSP',
+    'Neurocomputing',
+    'Expert Syst. Appl.',
+    'Commun. ACM',
+    'Theor. Comput. Sci.',
+    'Automatica',
+    'Inf. Sci.',
+    'ICRA',
+    'IEEE Trans. Information Theory',
+    'IJCAI',
+    'AMCIS',
+    'RFC',
+    'Pattern Recognition',
+    'IEEE Communications Letters',
+    'ISCAS',
+    'NIPS',
+    'AAAI',
+    'Inf. Process. Lett.',
+    'IEEE Transactions on Industrial Electronics',
+    'IEEE Transactions on Wireless Communications',
+    'ICIP',
+    'CHI Extended Abstracts',
+    'SAC'];
 
   loadLines(lines: string) {
     let { loadedData } = this.state;
 
     lines.split('\n').forEach((s, i) => {
-      if (s) {
+      if (s) { //} && ((i % 10) === 0)) {
         const j = JSON.parse(s);
-        if (j.year && j.authors && j.venue && j.title) {
-          const authors = j.authors.map(a => { return { name: a.name, gender: (Math.random() > 0.5 ? Gender.female : Gender.male) } }) // temp
-          const percentOutCiteFemale = Math.random(); // temp
-          const percentInCiteFemale = Math.random(); // temp
+        if (j.year && j.authors && j.venue && this.venues.indexOf(j.venue) > -1) {
+          let percentOutCiteFemale = j.outCitationsCount.female / (j.outCitationsCount.female + j.outCitationsCount.male + j.outCitationsCount.unknown);
           loadedData.push({
-            authors: authors,
+            authors: j.authors,
             year: j.year,
-            venue: this.venues[Math.floor(Math.random() * this.venues.length)], // temp
-            inCitationsCounts: { male: Math.round(j.inCitations.length * (1 - percentInCiteFemale)), female: Math.round(j.inCitations.length * percentInCiteFemale) }, //temp
-            outCitationsCounts: { male: Math.round(j.outCitations.length * (1 - percentOutCiteFemale)), female: Math.round(j.outCitations.length * percentOutCiteFemale) }, //temp
+            venue: j.venue,
+            inCitationsCounts: j.inCitationsCount,
+            outCitationsCounts: j.outCitationsCount,
             // augmented
-            percentFemaleAuthor: authors.filter(a => a.gender === Gender.female).length / authors.length,
-            firstFemalePosition: authors.findIndex(a => a.gender === Gender.female) + 1,
+            percentFemaleAuthor: j.authors.filter(a => a.gender === Gender.female).length / j.authors.length,
+            firstFemalePosition: j.authors.findIndex(a => a.gender === Gender.female) + 1,
             percentOutCiteFemale: percentOutCiteFemale
           });
         }
@@ -283,7 +337,7 @@ class Home extends React.Component<EmptyRouteAwareComponentProps<Props>, State> 
         {this.state.key !== "loaded" ? <input type="file" onChange={(e) => this.parseFile(e.target.files[0])} /> : null}
         {this.state.key === "loaded" ? (<ChartContainer className="container" crossfilterContext={this.state.getCrossfilterContextFunc}>
           <Title>
-            <h1>Semantic Scholar Records</h1>
+            <h1>Top 30 CS Venues from Semantic Scholar Records</h1>
             <DataCount
               dimension={ctx => ctx.crossfilter}
               group={ctx => ctx.groupAll}
@@ -313,7 +367,7 @@ class Home extends React.Component<EmptyRouteAwareComponentProps<Props>, State> 
                 <RowChart
                   dimension={ctx => ctx.venueDimension}
                   group={ctx => ctx.venueGroup}
-                  width={180} height={250}
+                  width={180} height={700}
                   elasticX={true}
                   margins={{ top: 20, left: 10, right: 10, bottom: 20 }}
                   label={d => d.key}
@@ -323,22 +377,42 @@ class Home extends React.Component<EmptyRouteAwareComponentProps<Props>, State> 
               </Chart>
             </LeftFilters>
             <RightFilters>
-              <Chart
-                title="Gender And Citations By Year"
-                subTitle="Color: year, Size: count, x: Percent of women in authors, y: Percent of out citations to other women authors">
-                <BubbleChart className="row"
-                  dimension={ctx => ctx.bubbleYearDimension}
-                  group={ctx => ctx.bubbleYearGroup}
-                  width={990} height={250}
-                  keyAccessor={p => p.value.citationIndex / (p.value.count || 1)}
-                  valueAccessor={p => p.value.genderIndex / (p.value.count || 1)}
-                  radiusValueAccessor={p => p.value.count}
-                  title={d => ''}
-                  x={d3.scale.linear().domain([0, 1])}
-                  y={d3.scale.linear().domain([0, 1])}
-                  r={d3.scale.linear().domain([0, 100000])}
-                />
-              </Chart>
+              <RightRowFilters2>
+                <Chart
+                  title="Gender And Citations By Year"
+                  subTitle="Color: year, Size: count, x: Percent of women in authors, y: Percent of out citations to other women authors">
+                  <BubbleChart className="row"
+                    dimension={ctx => ctx.bubbleYearDimension}
+                    group={ctx => ctx.bubbleYearGroup}
+                    width={460} height={350}
+                    colorAccessor={p => p.value.year}
+                    keyAccessor={p => p.value.citationIndex / (p.value.count || 1)}
+                    valueAccessor={p => p.value.genderIndex / (p.value.count || 1)}
+                    radiusValueAccessor={p => p.value.count}
+                    title={d => ''}
+                    x={d3.scale.linear().domain([0, 1])}
+                    y={d3.scale.linear().domain([0, 1])}
+                    r={d3.scale.linear().domain([0, 200000])}
+                  />
+                </Chart>
+                <Chart
+                  title="Gender And Citations By Venue"
+                  subTitle="Color: venue, Size: count, x: Percent of women in authors, y: Percent of out citations to other women authors">
+                  <BubbleChart className="row"
+                    dimension={ctx => ctx.bubbleVenueDimension}
+                    group={ctx => ctx.bubbleVenueGroup}
+                    width={460} height={350}
+                    colorAccessor={p => this.venues.indexOf(p.value.venue)}
+                    keyAccessor={p => p.value.citationIndex / (p.value.count || 1)}
+                    valueAccessor={p => p.value.genderIndex / (p.value.count || 1)}
+                    radiusValueAccessor={p => p.value.count}
+                    title={d => ''}
+                    x={d3.scale.linear().domain([0, 1])}
+                    y={d3.scale.linear().domain([0, 1])}
+                    r={d3.scale.linear().domain([0, 200000])}
+                  />
+                </Chart>
+              </RightRowFilters2>
               <Chart
                 title="Unique Names per Year"
                 subTitle="Are the number of female authors increasing?">
@@ -347,7 +421,7 @@ class Home extends React.Component<EmptyRouteAwareComponentProps<Props>, State> 
                   group={ctx => [ctx.yearUniqueNameGroup, 'Female']}
                   renderArea={true}
                   width={990}
-                  height={200}
+                  height={220}
                   transitionDuration={200}
                   margins={{ top: 30, right: 50, bottom: 25, left: 40 }}
                   mouseZoomable={false}
@@ -376,7 +450,7 @@ class Home extends React.Component<EmptyRouteAwareComponentProps<Props>, State> 
                   group={ctx => [ctx.femalePercentYearGroup, 'Female Contribution']}
                   renderArea={true}
                   width={990}
-                  height={200}
+                  height={220}
                   transitionDuration={200}
                   margins={{ top: 30, right: 50, bottom: 25, left: 40 }}
                   mouseZoomable={false}
@@ -394,8 +468,8 @@ class Home extends React.Component<EmptyRouteAwareComponentProps<Props>, State> 
                   <BarChart
                     dimension={ctx => ctx.inCitationsDimensions[Gender.female]}
                     group={ctx => ctx.inCitationsGroups[Gender.female]}
-                    width={250}
-                    height={180}
+                    width={230}
+                    height={160}
                     elasticY={true}
                     centerBar={true}
                     gap={1}
@@ -409,8 +483,8 @@ class Home extends React.Component<EmptyRouteAwareComponentProps<Props>, State> 
                   <BarChart
                     dimension={ctx => ctx.inCitationsDimensions[Gender.male]}
                     group={ctx => ctx.inCitationsGroups[Gender.male]}
-                    width={250}
-                    height={180}
+                    width={230}
+                    height={160}
                     elasticY={true}
                     centerBar={true}
                     gap={1}
@@ -424,8 +498,8 @@ class Home extends React.Component<EmptyRouteAwareComponentProps<Props>, State> 
                   <BarChart
                     dimension={ctx => ctx.outCitationsDimensions[Gender.female]}
                     group={ctx => ctx.outCitationsGroups[Gender.female]}
-                    width={250}
-                    height={180}
+                    width={230}
+                    height={160}
                     elasticY={true}
                     centerBar={true}
                     gap={1}
@@ -439,8 +513,8 @@ class Home extends React.Component<EmptyRouteAwareComponentProps<Props>, State> 
                   <BarChart
                     dimension={ctx => ctx.outCitationsDimensions[Gender.male]}
                     group={ctx => ctx.outCitationsGroups[Gender.male]}
-                    width={250}
-                    height={180}
+                    width={230}
+                    height={160}
                     elasticY={true}
                     centerBar={true}
                     gap={1}
@@ -478,6 +552,10 @@ const RightFilters = styled.div`
 
 const RightRowFilters = styled.div`
   display: flex;
+`;
+
+const RightRowFilters2 = styled(RightRowFilters)`
+  margin-left: 20px;
 `;
 
 export default styled(withRouter(Home))`
