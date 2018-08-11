@@ -68,15 +68,17 @@ if __name__ == "__main__":
 
     logging.info("Writing to {}".format(out_fn))
 
-    header = ["year", "first-author-male", "first-author-female", "total-male", "total-female"]
+    header = ["year", "first-author-male", "first-author-female", "first-author-unkonwn", "total-male", "total-female", "total-unknown"]
     with open(out_fn, 'w') as fout:
         fout.write("{}\n{}".format(','.join(header),
                                    "\n".join([','.join(map(str,
                                                            [year,
                                                             year_record.first_author["male"],
                                                             year_record.first_author["female"],
+                                                            year_record.first_author["unknown"],
                                                             year_record.total["male"],
-                                                            year_record.total["female"]]))
+                                                            year_record.total["female"],
+                                                            year_record.total["unknown"]]))
                                               for (year, year_record)
                                               in sorted(dict(gender_by_year).iteritems())])))
 
