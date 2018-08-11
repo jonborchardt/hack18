@@ -20,6 +20,7 @@ export interface Record {
   // augmented
   percentFemaleAuthor: number;
   firstFemalePosition: number;
+  firstFemalePositionReverse: number;
   percentOutCiteFemale: number;
 }
 

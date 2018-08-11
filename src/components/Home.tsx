@@ -42,6 +42,7 @@ class RecordCrossfilterContext {
   public inCitationsDimensions;
   public outCitationsDimensions;
   public firstFemaleAuthorPositionDimension;
+  public firstFemaleAuthorPositionReverseDimension;
 
   public femalePercentYearGroup;
   public malePercentYearGroup;
@@ -50,6 +51,7 @@ class RecordCrossfilterContext {
   public inCitationsGroups;
   public outCitationsGroups;
   public firstFemaleAuthorPositionGroup;
+  public firstFemaleAuthorPositionReverseGroup;
 
   public _citationsGroup;
   public _bubbleYearGroup;
@@ -74,6 +76,7 @@ class RecordCrossfilterContext {
     this.outCitationsDimensions[Gender.female] = this.crossfilter.dimension((d: Record) => Math.min(30, d.outCitationsCounts[Gender.female] || 0));
     this.outCitationsDimensions[Gender.male] = this.crossfilter.dimension((d: Record) => Math.min(30, d.outCitationsCounts[Gender.male] || 0));
     this.firstFemaleAuthorPositionDimension = this.crossfilter.dimension((d: Record) => d.firstFemalePosition);
+    this.firstFemaleAuthorPositionReverseDimension = this.crossfilter.dimension((d: Record) => d.firstFemalePositionReverse);
 
     this.femalePercentYearGroup = this.genderYearDimension.group().reduceSum((d: Record) => d.percentFemaleAuthor || 0);
     this.malePercentYearGroup = this.genderYearDimension.group().reduceSum((d: Record) => 1 - d.percentFemaleAuthor || 0);
@@ -86,6 +89,7 @@ class RecordCrossfilterContext {
     this.outCitationsGroups[Gender.female] = this.outCitationsDimensions[Gender.female].group();
     this.outCitationsGroups[Gender.male] = this.outCitationsDimensions[Gender.male].group();
     this.firstFemaleAuthorPositionGroup = this.firstFemaleAuthorPositionDimension.group();
+    this.firstFemaleAuthorPositionReverseGroup = this.firstFemaleAuthorPositionReverseDimension.group();
   }
 
   get bubbleYearGroup() {
@@ -174,7 +178,7 @@ class RecordCrossfilterContext {
       },
       () => {
         return {
-          uniqueNamesByGender: { 'male': {}, 'female': {} }
+          uniqueNamesByGender: { 'male': {}, 'female': {}, 'unknown': {} }
         };
       }
     );
@@ -301,7 +305,379 @@ class Home extends React.Component<EmptyRouteAwareComponentProps<Props>, State> 
     'IEEE Transactions on Wireless Communications',
     'ICIP',
     'CHI Extended Abstracts',
-    'SAC'];
+    'SAC',
+    "IJCAI",
+    "AAAI",
+    "Fuzzy Sets and Systems",
+    "Journal of Intelligent and Fuzzy Systems",
+    "ECAI",
+    "Artif. Intell.",
+    "UAI",
+    "AISTATS",
+    "IEEE Transactions on Fuzzy Systems",
+    "ECCV",
+    "Image Vision Comput.",
+    "CVPR",
+    "Computer Vision and Image Understanding",
+    "International Journal of Computer Vision",
+    "SIGGRAPH",
+    "ACCV",
+    "SIGGRAPH Posters",
+    "Machine Vision and Applications",
+    "ICCV",
+    "2017 IEEE Conference on Computer Vision and Pattern Recognition (CVPR)",
+    "ECCV Workshops",
+    "2017 IEEE International Conference on Computer Vision (ICCV)",
+    "2016 IEEE Conference on Computer Vision and Pattern Recognition (CVPR)",
+    "2015 IEEE Conference on Computer Vision and Pattern Recognition (CVPR)",
+    "ICCVG",
+    "2015 IEEE International Conference on Computer Vision (ICCV)",
+    "CVPR 2011",
+    "2017 IEEE International Conference on Computer Vision Workshops (ICCVW)",
+    "EMMCVPR",
+    "2005 IEEE Computer Society Conference on Computer Vision and Pattern Recognition (CVPR'05)",
+    "2011 IEEE International Conference on Computer Vision Workshops (ICCV Workshops)",
+    "2006 IEEE Computer Society Conference on Computer Vision and Pattern Recognition (CVPR'06)",
+    "2017 IEEE Conference on Computer Vision and Pattern Recognition Workshops (CVPRW)",
+    "Proceedings of the 2004 IEEE Computer Society Conference on Computer Vision and Pattern Recognition, 2004. CVPR 2004.",
+    "Tenth IEEE International Conference on Computer Vision (ICCV'05) Volume 1",
+    "2014 International Conference on Connected Vehicles and Expo (ICCVE)",
+    "2006 Conference on Computer Vision and Pattern Recognition Workshop (CVPRW'06)",
+    "2016 IEEE Conference on Computer Vision and Pattern Recognition Workshops (CVPRW)",
+    "2005 IEEE Computer Society Conference on Computer Vision and Pattern Recognition (CVPR'05) - Workshops",
+    "CVPR 2011 WORKSHOPS",
+    "2015 IEEE Conference on Computer Vision and Pattern Recognition Workshops (CVPRW)",
+    "2015 IEEE International Conference on Computer Vision Workshop (ICCVW)",
+    "ICCV-HCI",
+    "ECCV Workshops CVAMIA and MMBIA",
+    "CVPR Workshops",
+    "ECCV Workshop on HCI",
+    "ECCV Workshop BioAW",
+    "ECCV Workshop SMVP",
+    "ICCV Workshops",
+    "HCI",
+    "CHI Extended Abstracts",
+    "CHI",
+    "Computers in Human Behavior",
+    "Mobile HCI",
+    "Pattern Recognition",
+    "NIPS",
+    "Pattern Recognition Letters",
+    "Computational Statistics & Data Analysis",
+    "ICML",
+    "ICPR",
+    "KDD",
+    "FLAIRS Conference",
+    "PAKDD",
+    "Journal of Machine Learning Research",
+    "Machine Learning",
+    "ECML/PKDD",
+    "Encyclopedia of Machine Learning and Data Mining",
+    "Encyclopedia of Machine Learning",
+    "PKDD",
+    "2010 International Conference on Machine Learning and Cybernetics",
+    "Int. J. Machine Learning & Cybernetics",
+    "2012 International Conference on Machine Learning and Cybernetics",
+    "2011 International Conference on Machine Learning and Cybernetics",
+    "ACML",
+    "2013 International Conference on Machine Learning and Cybernetics",
+    "2012 11th International Conference on Machine Learning and Applications",
+    "2015 IEEE 14th International Conference on Machine Learning and Applications (ICMLA)",
+    "LREC",
+    "ACL",
+    "WWW",
+    "CIKM",
+    "SIGIR",
+    "COLING",
+    "EMNLP",
+    "TREC",
+    "HLT-NAACL",
+    "ECIR",
+    "EACL",
+    "CICLing",
+    "IJCNLP",
+    "Computational Linguistics",
+    "RANLP",
+    "CoNLL",
+    "SemEval@NAACL-HLT",
+    "Language and Linguistics Compass",
+    "SemEval@ACL",
+    "WMT@ACL",
+    "EMNLP-CoNLL",
+    "TACL",
+    "ACL/IJCNLP",
+    "COLING-ACL",
+    "BioNLP@ACL",
+    "CoNLL Shared Task",
+    "FSMNLP",
+    "BEA@NAACL-HLT",
+    "SemEval@COLING",
+    "*SEM@NAACL-HLT",
+    "WMT@EMNLP",
+    "HLT/EMNLP",
+    "LAW@ACL",
+    "NLPRS",
+    "Proceedings of the 6th International Conference on Natural Language Processing and Knowledge Engineering(NLPKE-2010)",
+    "SENSEVAL@ACL",
+    "BioNLP",
+    "NAACL",
+    "BioNLP@HLT-NAACL",
+    "NLPCC/ICCPOL",
+    "LaTeCH@ACL",
+    "WASSA@ACL",
+    "Rep4NLP@ACL",
+    "WASSA@EMNLP",
+    "WMT@NAACL-HLT",
+    "WSSANLP@COLING",
+    "BUCC@ACL",
+    "VarDial@COLING",
+    "NEWS@ACL",
+    "CogALex@COLING",
+    "BEA@EMNLP",
+    "NEWS@IJCNLP",
+    "MWE@EACL",
+    "SIGHAN@IJCNLP",
+    "WASSA@NAACL-HLT",
+    "CLfL@NAACL-HLT",
+    "NLPCS",
+    "CLPsych@HLT-NAACL",
+    "WMT@EACL",
+    "CoNLL/LLL",
+    "BEA@ACL",
+    "ArgMining@ACL",
+    "ParallelText@ACL",
+    "TextGraphs@ACL",
+    "SSST@ACL",
+    "SEMITIC@ACL",
+    "MWE@ACL",
+    "CodeSwitch@EMNLP",
+    "ALR@COLING",
+    "SIGHAN@IJCNLP 2005",
+    "SIGHAN@COLING/ACL",
+    "NUT@COLING",
+    "DiscoMT@EMNLP",
+    "MWE@NAACL-HLT",
+    "LaTeCH@EACL",
+    "VLC@COLING/ACL",
+    "VLC@ACL",
+    "SWCN@EMNLP",
+    "NUT@EMNLP",
+    "Louhi@EMNLP",
+    "BioNLP@NAACL-HLT",
+    "ALR7@IJCNLP",
+    "RANLP Student Research Workshop",
+    "LT4DH@COLING",
+    "LAW@NAACL-HLT",
+    "LAW@COLING",
+    "ANLP@ACL",
+    "EMNLP-CoNLL Shared Task",
+    "NeMLaP-CoNLL",
+    "INTERSPEECH",
+    "EUROSPEECH",
+    "ICSLP",
+    "2004 IEEE International Conference on Acoustics, Speech, and Signal Processing",
+    "2017 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)",
+    "2016 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)",
+    "2008 IEEE International Conference on Acoustics, Speech and Signal Processing"
+  ];
+
+  venueMappings = {
+    "AI": [
+      "IJCAI",
+      "AAAI",
+      "Fuzzy Sets and Systems",
+      "Journal of Intelligent and Fuzzy Systems",
+      "ECAI",
+      "Artif. Intell.",
+      "UAI",
+      "AISTATS",
+      "IEEE Transactions on Fuzzy Systems"
+    ],
+    "CV": [
+      "ECCV",
+      "Image Vision Comput.",
+      "CVPR",
+      "Computer Vision and Image Understanding",
+      "International Journal of Computer Vision",
+      "SIGGRAPH",
+      "ACCV",
+      "SIGGRAPH Posters",
+      "Machine Vision and Applications",
+      "ICCV",
+      "2017 IEEE Conference on Computer Vision and Pattern Recognition (CVPR)",
+      "ECCV Workshops",
+      "2017 IEEE International Conference on Computer Vision (ICCV)",
+      "2016 IEEE Conference on Computer Vision and Pattern Recognition (CVPR)",
+      "2015 IEEE Conference on Computer Vision and Pattern Recognition (CVPR)",
+      "ICCVG",
+      "2015 IEEE International Conference on Computer Vision (ICCV)",
+      "CVPR 2011",
+      "2017 IEEE International Conference on Computer Vision Workshops (ICCVW)",
+      "EMMCVPR",
+      "2005 IEEE Computer Society Conference on Computer Vision and Pattern Recognition (CVPR'05)",
+      "2011 IEEE International Conference on Computer Vision Workshops (ICCV Workshops)",
+      "2006 IEEE Computer Society Conference on Computer Vision and Pattern Recognition (CVPR'06)",
+      "2017 IEEE Conference on Computer Vision and Pattern Recognition Workshops (CVPRW)",
+      "Proceedings of the 2004 IEEE Computer Society Conference on Computer Vision and Pattern Recognition, 2004. CVPR 2004.",
+      "Tenth IEEE International Conference on Computer Vision (ICCV'05) Volume 1",
+      "2014 International Conference on Connected Vehicles and Expo (ICCVE)",
+      "2006 Conference on Computer Vision and Pattern Recognition Workshop (CVPRW'06)",
+      "2016 IEEE Conference on Computer Vision and Pattern Recognition Workshops (CVPRW)",
+      "2005 IEEE Computer Society Conference on Computer Vision and Pattern Recognition (CVPR'05) - Workshops",
+      "CVPR 2011 WORKSHOPS",
+      "2015 IEEE Conference on Computer Vision and Pattern Recognition Workshops (CVPRW)",
+      "2015 IEEE International Conference on Computer Vision Workshop (ICCVW)",
+      "ICCV-HCI",
+      "ECCV Workshops CVAMIA and MMBIA",
+      "CVPR Workshops",
+      "ECCV Workshop on HCI",
+      "ECCV Workshop BioAW",
+      "ECCV Workshop SMVP",
+      "ICCV Workshops"
+    ],
+    "HCI": [
+      "HCI",
+      "CHI Extended Abstracts",
+      "CHI",
+      "Computers in Human Behavior",
+      "Mobile HCI"
+    ],
+    "ML": [
+      "Pattern Recognition",
+      "NIPS",
+      "Pattern Recognition Letters",
+      "Computational Statistics & Data Analysis",
+      "ICML",
+      "ICPR",
+      "KDD",
+      "FLAIRS Conference",
+      "PAKDD",
+      "Journal of Machine Learning Research",
+      "Machine Learning",
+      "ECML/PKDD",
+      "Encyclopedia of Machine Learning and Data Mining",
+      "Encyclopedia of Machine Learning",
+      "PKDD",
+      "2010 International Conference on Machine Learning and Cybernetics",
+      "Int. J. Machine Learning & Cybernetics",
+      "2012 International Conference on Machine Learning and Cybernetics",
+      "2011 International Conference on Machine Learning and Cybernetics",
+      "ACML",
+      "2013 International Conference on Machine Learning and Cybernetics",
+      "2012 11th International Conference on Machine Learning and Applications",
+      "2015 IEEE 14th International Conference on Machine Learning and Applications (ICMLA)"
+    ],
+    "NLP": [
+      "LREC",
+      "ACL",
+      "WWW",
+      "CIKM",
+      "SIGIR",
+      "COLING",
+      "EMNLP",
+      "TREC",
+      "HLT-NAACL",
+      "ECIR",
+      "EACL",
+      "CICLing",
+      "IJCNLP",
+      "Computational Linguistics",
+      "RANLP",
+      "CoNLL",
+      "SemEval@NAACL-HLT",
+      "Language and Linguistics Compass",
+      "SemEval@ACL",
+      "WMT@ACL",
+      "EMNLP-CoNLL",
+      "TACL",
+      "ACL/IJCNLP",
+      "COLING-ACL",
+      "BioNLP@ACL",
+      "CoNLL Shared Task",
+      "FSMNLP",
+      "BEA@NAACL-HLT",
+      "SemEval@COLING",
+      "*SEM@NAACL-HLT",
+      "WMT@EMNLP",
+      "HLT/EMNLP",
+      "LAW@ACL",
+      "NLPRS",
+      "Proceedings of the 6th International Conference on Natural Language Processing and Knowledge Engineering(NLPKE-2010)",
+      "SENSEVAL@ACL",
+      "BioNLP",
+      "NAACL",
+      "BioNLP@HLT-NAACL",
+      "NLPCC/ICCPOL",
+      "LaTeCH@ACL",
+      "WASSA@ACL",
+      "Rep4NLP@ACL",
+      "WASSA@EMNLP",
+      "WMT@NAACL-HLT",
+      "WSSANLP@COLING",
+      "BUCC@ACL",
+      "VarDial@COLING",
+      "NEWS@ACL",
+      "CogALex@COLING",
+      "BEA@EMNLP",
+      "NEWS@IJCNLP",
+      "MWE@EACL",
+      "SIGHAN@IJCNLP",
+      "WASSA@NAACL-HLT",
+      "CLfL@NAACL-HLT",
+      "NLPCS",
+      "CLPsych@HLT-NAACL",
+      "WMT@EACL",
+      "CoNLL/LLL",
+      "BEA@ACL",
+      "ArgMining@ACL",
+      "ParallelText@ACL",
+      "TextGraphs@ACL",
+      "SSST@ACL",
+      "SEMITIC@ACL",
+      "MWE@ACL",
+      "CodeSwitch@EMNLP",
+      "ALR@COLING",
+      "SIGHAN@IJCNLP 2005",
+      "SIGHAN@COLING/ACL",
+      "NUT@COLING",
+      "DiscoMT@EMNLP",
+      "MWE@NAACL-HLT",
+      "LaTeCH@EACL",
+      "VLC@COLING/ACL",
+      "VLC@ACL",
+      "SWCN@EMNLP",
+      "NUT@EMNLP",
+      "Louhi@EMNLP",
+      "BioNLP@NAACL-HLT",
+      "ALR7@IJCNLP",
+      "RANLP Student Research Workshop",
+      "LT4DH@COLING",
+      "LAW@NAACL-HLT",
+      "LAW@COLING",
+      "ANLP@ACL",
+      "EMNLP-CoNLL Shared Task",
+      "NeMLaP-CoNLL"
+    ],
+    "Speech": [
+      "INTERSPEECH",
+      "EUROSPEECH",
+      "ICSLP",
+      "2004 IEEE International Conference on Acoustics, Speech, and Signal Processing",
+      "2017 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)",
+      "2016 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)",
+      "2008 IEEE International Conference on Acoustics, Speech and Signal Processing"
+    ]
+  }
+  mapVenue(venue) {
+    let ret = venue;
+    Object.keys(this.venueMappings).forEach(gid => {
+      const index = this.venueMappings[gid].indexOf(venue);
+      if (index > -1) {
+        ret = gid;
+      }
+    })
+    return ret;
+  }
 
   loadLines(lines: string) {
     let { loadedData } = this.state;
@@ -309,19 +685,24 @@ class Home extends React.Component<EmptyRouteAwareComponentProps<Props>, State> 
     lines.split('\n').forEach((s, i) => {
       if (s) { //} && ((i % 10) === 0)) {
         const j = JSON.parse(s);
-        if (j.year && j.authors && j.venue && this.venues.indexOf(j.venue) > -1) {
-          let percentOutCiteFemale = j.outCitationsCount.female / (j.outCitationsCount.female + j.outCitationsCount.male + j.outCitationsCount.unknown);
-          loadedData.push({
-            authors: j.authors,
-            year: j.year,
-            venue: j.venue,
-            inCitationsCounts: j.inCitationsCount,
-            outCitationsCounts: j.outCitationsCount,
-            // augmented
-            percentFemaleAuthor: j.authors.filter(a => a.gender === Gender.female).length / j.authors.length,
-            firstFemalePosition: j.authors.findIndex(a => a.gender === Gender.female) + 1,
-            percentOutCiteFemale: percentOutCiteFemale
-          });
+        if (j.year && j.year < 2018 && j.authors && j.venue && this.venues.indexOf(j.venue) > -1) {
+          let genderedAuthors = j.authors.filter(a => a.gender === Gender.male || a.gender === Gender.female); // hack
+          let genderedInCitationsCount = { female: j.inCitationsCount.female, male: j.inCitationsCount.male }; // hack
+          let genderedOutCitationsCount = { female: j.outCitationsCount.female, male: j.outCitationsCount.male }; // hack
+          if (genderedAuthors.length > 0) {
+            loadedData.push({
+              authors: genderedAuthors,
+              year: j.year,
+              venue: this.mapVenue(j.venue),
+              inCitationsCounts: genderedInCitationsCount,
+              outCitationsCounts: genderedOutCitationsCount,
+              // augmented
+              percentFemaleAuthor: genderedAuthors.filter(a => a.gender === Gender.female).length / genderedAuthors.length,
+              firstFemalePosition: genderedAuthors.findIndex(a => a.gender === Gender.female) + 1,
+              firstFemalePositionReverse: genderedAuthors.reverse().findIndex(a => a.gender === Gender.female) + 1, // hack
+              percentOutCiteFemale: genderedOutCitationsCount.female / ((genderedOutCitationsCount.female + genderedOutCitationsCount.male) || 1)
+            });
+          }
         }
       }
     });
@@ -329,7 +710,7 @@ class Home extends React.Component<EmptyRouteAwareComponentProps<Props>, State> 
     this.setState({ loadedData }, () => console.log(this.state.loadedData.length));
   }
 
-  yearScale = d3.scale.linear().domain([1944, 2018]);
+  yearScale = d3.scale.linear().domain([1957, 2017]);
 
   render() {
     return (
@@ -352,13 +733,21 @@ class Home extends React.Component<EmptyRouteAwareComponentProps<Props>, State> 
                   group={ctx => ctx.percentFemaleGroup}
                   width={180} height={180}
                   radius={80} innerRadius={30}
-                  label={d => `%${Math.round(d.key * 100)}`}
+                  label={d => `${Math.round(d.key * 100)}%`}
                 />
               </Chart>
               <Chart title="First Female Author Position">
                 <PieChart
                   dimension={ctx => ctx.firstFemaleAuthorPositionDimension}
                   group={ctx => ctx.firstFemaleAuthorPositionGroup}
+                  width={180} height={180}
+                  radius={80} innerRadius={30}
+                />
+              </Chart>
+              <Chart title="First Female Author Position (reverse)">
+                <PieChart
+                  dimension={ctx => ctx.firstFemaleAuthorPositionReverseDimension}
+                  group={ctx => ctx.firstFemaleAuthorPositionReverseGroup}
                   width={180} height={180}
                   radius={80} innerRadius={30}
                 />
@@ -377,10 +766,10 @@ class Home extends React.Component<EmptyRouteAwareComponentProps<Props>, State> 
               </Chart>
             </LeftFilters>
             <RightFilters>
-              <RightRowFilters2>
+              <RightRowBubbles>
                 <Chart
                   title="Gender And Citations By Year"
-                  subTitle="Color: year, Size: count, x: Percent of women in authors, y: Percent of out citations to other women authors">
+                  subTitle="Color: year, Size: count, x: Percent of women in authors, y: Percent of outward citations to other women authors">
                   <BubbleChart className="row"
                     dimension={ctx => ctx.bubbleYearDimension}
                     group={ctx => ctx.bubbleYearGroup}
@@ -390,14 +779,14 @@ class Home extends React.Component<EmptyRouteAwareComponentProps<Props>, State> 
                     valueAccessor={p => p.value.genderIndex / (p.value.count || 1)}
                     radiusValueAccessor={p => p.value.count}
                     title={d => ''}
-                    x={d3.scale.linear().domain([0, 1])}
-                    y={d3.scale.linear().domain([0, 1])}
+                    x={d3.scale.linear().domain([0, 0.6])}
+                    y={d3.scale.linear().domain([0.1, 1])}
                     r={d3.scale.linear().domain([0, 200000])}
                   />
                 </Chart>
                 <Chart
                   title="Gender And Citations By Venue"
-                  subTitle="Color: venue, Size: count, x: Percent of women in authors, y: Percent of out citations to other women authors">
+                  subTitle="Color: venue, Size: count, x: Percent of women in authors, y: Percent of outward citations to other women authors">
                   <BubbleChart className="row"
                     dimension={ctx => ctx.bubbleVenueDimension}
                     group={ctx => ctx.bubbleVenueGroup}
@@ -407,12 +796,12 @@ class Home extends React.Component<EmptyRouteAwareComponentProps<Props>, State> 
                     valueAccessor={p => p.value.genderIndex / (p.value.count || 1)}
                     radiusValueAccessor={p => p.value.count}
                     title={d => ''}
-                    x={d3.scale.linear().domain([0, 1])}
-                    y={d3.scale.linear().domain([0, 1])}
+                    x={d3.scale.linear().domain([0, 0.6])}
+                    y={d3.scale.linear().domain([0.1, 1])}
                     r={d3.scale.linear().domain([0, 200000])}
                   />
                 </Chart>
-              </RightRowFilters2>
+              </RightRowBubbles>
               <Chart
                 title="Unique Names per Year"
                 subTitle="Are the number of female authors increasing?">
@@ -464,12 +853,13 @@ class Home extends React.Component<EmptyRouteAwareComponentProps<Props>, State> 
                 />
               </Chart>
               <RightRowFilters>
-                <Chart title="In Female Citations">
+                <Chart title="Inward Citations from Females">
                   <BarChart
                     dimension={ctx => ctx.inCitationsDimensions[Gender.female]}
                     group={ctx => ctx.inCitationsGroups[Gender.female]}
                     width={230}
                     height={160}
+                    margins={{ top: 20, left: 45, right: 10, bottom: 20 }}
                     elasticY={true}
                     centerBar={true}
                     gap={1}
@@ -479,12 +869,13 @@ class Home extends React.Component<EmptyRouteAwareComponentProps<Props>, State> 
                     renderHorizontalGridLines={true}
                   />
                 </Chart>
-                <Chart title="In Male Citations">
+                <Chart title="Inward Citations from Males">
                   <BarChart
                     dimension={ctx => ctx.inCitationsDimensions[Gender.male]}
                     group={ctx => ctx.inCitationsGroups[Gender.male]}
                     width={230}
                     height={160}
+                    margins={{ top: 20, left: 45, right: 10, bottom: 20 }}
                     elasticY={true}
                     centerBar={true}
                     gap={1}
@@ -494,12 +885,13 @@ class Home extends React.Component<EmptyRouteAwareComponentProps<Props>, State> 
                     renderHorizontalGridLines={true}
                   />
                 </Chart>
-                <Chart title="Out Female Citations">
+                <Chart title="Outward Citations to Females">
                   <BarChart
                     dimension={ctx => ctx.outCitationsDimensions[Gender.female]}
                     group={ctx => ctx.outCitationsGroups[Gender.female]}
                     width={230}
                     height={160}
+                    margins={{ top: 20, left: 45, right: 10, bottom: 20 }}
                     elasticY={true}
                     centerBar={true}
                     gap={1}
@@ -509,12 +901,13 @@ class Home extends React.Component<EmptyRouteAwareComponentProps<Props>, State> 
                     renderHorizontalGridLines={true}
                   />
                 </Chart>
-                <Chart title="Out Male Citations">
+                <Chart title="Outward Citations to Males">
                   <BarChart
                     dimension={ctx => ctx.outCitationsDimensions[Gender.male]}
                     group={ctx => ctx.outCitationsGroups[Gender.male]}
                     width={230}
                     height={160}
+                    margins={{ top: 20, left: 45, right: 10, bottom: 20 }}
                     elasticY={true}
                     centerBar={true}
                     gap={1}
@@ -554,7 +947,8 @@ const RightRowFilters = styled.div`
   display: flex;
 `;
 
-const RightRowFilters2 = styled(RightRowFilters)`
+const RightRowBubbles = styled.div`
+  display: flex;
   margin-left: 20px;
 `;
 
@@ -568,8 +962,9 @@ font-size: 20px;
 }
 
 .dc-chart {
-  g.row text {
-    fill: darkslategray;
+  g.row text,
+  g.pie-label-group text {
+    fill: black;
   }
   text {
     font-family: "open sans";
