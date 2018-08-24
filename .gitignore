@@ -45,3 +45,5 @@ Thumbs.db
 # data files
 /data/
 author_data.tsv
+*tmp*
+*#*
