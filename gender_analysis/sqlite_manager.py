@@ -10,16 +10,23 @@ from docopt import docopt
 from collections import defaultdict
 from operator import itemgetter
 import sqlite3
+import math
 
 # Local imports
 
 #=-----
 
+
+def paper_int_id(paper_id):
+    """
+    Get a unique integer for the given input string paper_ind
+    """
+    return hash(paper_id)
+
 class sqlite_database:
     """
     Sqlite3 interface.
     """
-
     def __init__(self, db_filename):
         """
         Store filename.
@@ -31,24 +38,26 @@ class sqlite_database:
         Open sqlite connection and set up tables.
         """
         self.conn = sqlite3.connect(self.db_filename)
-        self.conn.execute('CREATE TABLE papers (paper_id TEXT, author_name TEXT, author_gender TEXT)')
+        self.conn.execute('CREATE TABLE papers (paper_id INTEGER PRIMARY KEY, author_name TEXT, author_gender TEXT)')
         return self
 
     def add_paper(self, paper):
         """
         Add a paper to db.
         """
-        paper_id = paper['id']
-        for author in paper['authors']:
-            # command = "INSERT INTO papers (paper_id, author_name, author_gender) VALUES ('{paper_id}', '{author_name}', '{author_gender}')"\
-            #           .format(paper_id = paper_id,
-            #                   author_name = author['name'],
-            #                   author_gender = author['gender'])
-#            logging.info(command)
-            self.conn.execute("INSERT INTO papers (paper_id, author_name, author_gender) VALUES (?, ?, ?)",
-                              (paper_id,
-                               author['name'],
-                               author['gender']))
+        paper_id = paper_int_id(paper['id'])
+        authors = paper['authors']
+        names = ";;;".join([author['name']
+                             for author
+                             in authors])
+        genders = ";;;".join([author['gender']
+                              for author
+                              in authors])
+
+        self.conn.execute("INSERT INTO papers (paper_id, author_name, author_gender) VALUES (?, ?, ?)",
+                          (paper_id,
+                           names,
+                           genders))
 
 
     def __exit__(self, *args):
@@ -69,5 +78,11 @@ if __name__ == "__main__":
         logging.basicConfig(level = logging.DEBUG)
     else:
         logging.basicConfig(level = logging.INFO)
+
+    paper_ids = ["23e8d287dac954af1b421fba69bc0158541563c0",
+                 "32ac51549382a64551ccfe55bf2315362c8a42e0",
+                 "cfa06e42e057801131f757d7e520c39b6893a83a"]
+
+    assert(len(set(map(paper_int_id, paper_ids))) == len(paper_ids))
 
     logging.info("DONE")

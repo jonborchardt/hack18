@@ -1,5 +1,8 @@
 import sqlite3
 import sys
-
+paper_id = "cfa06e42e057801131f757d7e520c39b6893a83a"
+print ("loading...")
 conn = sqlite3.connect(sys.argv[1])
-print(conn.execute("select (author_gender) FROM papers where paper_id='6e8dd3bbc8c6dc2b170028a0afe376f1e9decb25'").fetchall())
+print ("searching...")
+print(conn.execute("select (author_gender) FROM papers where paper_id='{}'".format(paper_id)).fetchall())
+print(conn.execute("select (author_gender) FROM papers where paper_id='{}'".format(paper_id)).fetchall())
