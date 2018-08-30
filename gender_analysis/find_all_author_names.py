@@ -17,7 +17,7 @@ def main(data_path: str, output_author_filename: str):
             for filename in files:
                 i += 1
                 get_authors_from_file(root + filename, author_info)
-                print("Finished scanning {i} records")
+                print(f"Finished scanning {i} records")
                 print(f"Found {len(author_info)} unique author ids so far")
     else:
         get_authors_from_file(data_path, author_info)
@@ -48,7 +48,7 @@ def output_author_info(author_info: Dict[str, Set[str]], filename: str):
     print(f"Saving author info to {filename}")
     with open(filename, 'w') as out:
         for author_id, author_name in longest_names.items():
-        out.write(f"{author_id}\t{author_name}\n")
+            out.write(f"{author_id}\t{author_name}\n")
 
 
 if __name__ == '__main__':

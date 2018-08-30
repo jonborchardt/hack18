@@ -69,6 +69,7 @@ if __name__ == "__main__":
     # Load input file
     logging.info("Adding gender...")
     authors_count = 0
+    empty_cnt = 0
     with open(out_fn, 'w') as fout:
         for paper in tqdm(lazy_paper_reader(inp_fn)):
             author_ls = []
@@ -76,14 +77,18 @@ if __name__ == "__main__":
                 cur_author = {"name": author}
                 authors_count += 1
                 first_name = gender.determineFirstName(author.split())
-                cur_author['first_name'] = first_name
-                cur_author['gender'] = gender.determineGender(author)
-                author_ls.append(cur_author)
+                if first_name.strip():
+                    cur_author['first_name'] = first_name
+                    cur_author['gender'] = gender.determineGender(author)
+                    author_ls.append(cur_author)
+                else:
+                    empty_cnt += 1
 
             paper["authors"] = author_ls
             fout.write('{}\n'.format(json.dumps(paper)))
 
 
-    logging.info("Added gender to {} authors".format(authors_count))
+    logging.info("Removed {} empty authors".format(empty_cnt))
+    logging.info("Added gender to {} authors in {}".format(authors_count, out_fn))
 
     logging.info("DONE")

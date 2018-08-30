@@ -47,3 +47,5 @@ Thumbs.db
 author_data.tsv
 *tmp*
 *#*
+*.json*
+medline-analysis/

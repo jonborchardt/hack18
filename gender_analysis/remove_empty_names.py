@@ -27,7 +27,23 @@ from collections import namedtuple
 
 # Local imports
 from add_gender import lazy_paper_reader
+from legenderary.leGenderary import leGenderary
 #=-----
+
+options = { 'male'          : 'male',
+            'female'        : 'female',
+            'androgynous'   : 'unknown',
+            'unknown'       : 'unknown',
+            'maleConfirm'   : 'male',
+            'femaleConfirm' : 'female',
+            'dict1'         : 'legenderary/dict1.txt',
+            'dict2'         : 'legenderary/dict2.txt',
+            'customDict'    : 'legenderary/custom.txt',
+            'bingAPIKey'    : 'ABC123478ZML'
+          }
+
+# Init leGenderary
+gender = leGenderary(options)
 
 if __name__ == "__main__":
 
@@ -43,18 +59,16 @@ if __name__ == "__main__":
 
     gender_dict = defaultdict(lambda: defaultdict(lambda: 0))
 
-    for paper in tqdm(lazy_paper_reader(inp_fn)):
-        for author in paper["authors"]:
-            gender_dict[author["gender"]][author["first_name"]] += 1
+    cnt = 0
 
-    for gender in gender_dict:
-        cur_fn = os.path.join(out_fn, "{}.csv".format(gender))
-        logging.info("Writing to {}".format(cur_fn))
-        with open(cur_fn, 'w') as fout:
-            fout.write('\n'.join(["{},{}".format(name, count)
-                                  for (name, count)
-                                  in sorted(gender_dict[gender].iteritems(),
-                                            key = lambda(key, value): value,
-                                            reverse = True)]))
+    with open(out_fn, 'w') as fout:
+        for paper in tqdm(lazy_paper_reader(inp_fn)):
+            non_empty_auth = [author
+                              for author in paper["authors"]
+                              if gender.determineFirstName(author.split())]
+            cnt += len(paper["authors"]) - len(non_empty_auth)
+            paper["authors"] = non_empty_auth
+            fout.write("{}\n".format(json.dumps(paper)))
 
+    logging.info("Removed {} nameless authors".format(cnt))
     logging.info("DONE")

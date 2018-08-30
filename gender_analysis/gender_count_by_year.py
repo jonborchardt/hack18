@@ -33,7 +33,8 @@ from collections import namedtuple
 
 year_record = namedtuple("YearRecord",
                          ["total",
-                          "first_author"])
+                          "first_author",
+                          "last_author"])
 
 
 
@@ -51,16 +52,18 @@ if __name__ == "__main__":
 
 
     gender_by_year = defaultdict(lambda: year_record(defaultdict(lambda: 0),
-                                                defaultdict(lambda: 0)))
+                                                     defaultdict(lambda: 0),
+                                                     defaultdict(lambda: 0)))
 
 
     for paper in tqdm(lazy_paper_reader(inp_fn)):
         cur_year_record = gender_by_year[paper["year"]]
         cur_authors = paper["authors"]
 
-        # add first author stats
+        # add first and last author stats
         if cur_authors:
             cur_year_record.first_author[cur_authors[0]["gender"]] += 1
+            cur_year_record.last_author[cur_authors[-1]["gender"]] += 1
 
         # all authors stats
         for cur_author in cur_authors:
@@ -68,7 +71,10 @@ if __name__ == "__main__":
 
     logging.info("Writing to {}".format(out_fn))
 
-    header = ["year", "first-author-male", "first-author-female", "first-author-unkonwn", "total-male", "total-female", "total-unknown"]
+    header = ["year", \
+              "first-author-male", "first-author-female", "first-author-unkonwn",\
+              "last-author-male", "last-author-female", "last-author-unkonwn",\
+              "total-male", "total-female", "total-unknown"]
     with open(out_fn, 'w') as fout:
         fout.write("{}\n{}".format(','.join(header),
                                    "\n".join([','.join(map(str,
@@ -76,6 +82,9 @@ if __name__ == "__main__":
                                                             year_record.first_author["male"],
                                                             year_record.first_author["female"],
                                                             year_record.first_author["unknown"],
+                                                            year_record.last_author["male"],
+                                                            year_record.last_author["female"],
+                                                            year_record.last_author["unknown"],
                                                             year_record.total["male"],
                                                             year_record.total["female"],
                                                             year_record.total["unknown"]]))
