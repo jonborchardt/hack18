@@ -13,7 +13,7 @@ import sqlite3
 from tqdm import tqdm
 
 # Local imports
-from sqlite_manager import paper_int_id
+from sqlite_manager import Sqlite_Database
 from add_gender import lazy_paper_reader
 #=-----
 
@@ -29,16 +29,18 @@ if __name__ == "__main__":
     else:
         logging.basicConfig(level = logging.INFO)
 
+    with Sqlite_Database(db_fn) as db:
+        for paper in tqdm(lazy_paper_reader(json_fn)):
+            json_genders = [author['gender']
+                            for author
+                            in paper['authors']]
+            json_authors = [author['name']
+                            for author
+                            in paper['authors']]
 
-    conn = sqlite3.connect(db_fn)
+            db_genders, db_authors = db.get_paper_genders(paper['id'])
 
-    for paper in tqdm(lazy_paper_reader(json_fn)):
-        db_genders_ls = conn.execute("select (author_gender) FROM papers where paper_id='{}'".format(paper_int_id(paper["id"]))).fetchall()
-        assert(len(db_genders_ls) == 1)
+            assert(db_genders == json_genders)
+            assert(db_authors == json_authors)
 
-        db_genders = db_genders_ls[0][0].split(';;;')
-        json_genders = [author['gender']
-                        for author
-                        in paper['authors']]
-        assert(db_genders == json_genders)
-    logging.info("DONE")
+        logging.info("DONE")

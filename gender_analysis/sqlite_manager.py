@@ -23,28 +23,50 @@ def paper_int_id(paper_id):
     """
     return hash(paper_id)
 
-class sqlite_database:
+class Sqlite_Database:
     """
     Sqlite3 interface.
     """
-    def __init__(self, db_filename):
+    def __init__(self, db_filename, read_only = True):
         """
         Store filename.
         """
         self.db_filename = db_filename
+        self.read_only = read_only
 
     def __enter__(self):
         """
         Open sqlite connection and set up tables.
         """
         self.conn = sqlite3.connect(self.db_filename)
-        self.conn.execute('CREATE TABLE papers (paper_id INTEGER PRIMARY KEY, author_name TEXT, author_gender TEXT)')
+        if not self.read_only:
+            self.conn.execute('CREATE TABLE papers (paper_id INTEGER PRIMARY KEY, author_name TEXT, author_gender TEXT)')
         return self
+
+    def get_paper_data(self, paper_id):
+        """
+        Get a list of genders of a given paper id.
+        """
+        db_genders_ls = self.conn.execute("select author_gender,author_name FROM papers where paper_id='{}'".format(paper_int_id(paper_id))).fetchall()
+        if not db_genders_ls:
+            return ([], [])
+        assert(len(db_genders_ls) == 1)
+        genders, authors = db_genders_ls[0]
+
+        if genders:
+            gender_split = genders.split(';;;')
+            authors_split = authors.split(';;;')
+            assert(len(gender_split) == len(authors_split))
+            return gender_split, authors_split
+        else:
+            assert (not authors)
+            return ([], [])
 
     def add_paper(self, paper):
         """
         Add a paper to db.
         """
+        assert(not self.read_only)
         paper_id = paper_int_id(paper['id'])
         authors = paper['authors']
         names = ";;;".join([author['name']
@@ -64,7 +86,8 @@ class sqlite_database:
         """
         Close this instance and commit to file.
         """
-        self.conn.commit()
+        if (not self.read_only):
+            self.conn.commit()
         self.conn.close()
 
 if __name__ == "__main__":
