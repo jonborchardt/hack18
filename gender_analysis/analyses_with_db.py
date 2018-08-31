@@ -71,7 +71,6 @@ class Out_Analysis:
                 # Analyze self citations
                 if cited_author in cur_authors:
                     # These author cited themselves
-                    pdb.set_trace()
                     cur_year_self_citations_record[cited_gender] += 1
 
     def output_stats(self):
