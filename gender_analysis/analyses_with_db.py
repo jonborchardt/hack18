@@ -74,17 +74,18 @@ class Out_Analysis:
                     cur_year_self_citations_record[cited_gender] += 1
 
     def output_stats(self):
-        for cur_out_fn, header in [(self.out_fn, self.header),  (self.out_fn_self_citations, self.self_cite_header)]:
+        for cur_out_fn, header, data in [(self.out_fn, self.header, self.data),
+                                         (self.out_fn_self_citations, self.self_cite_header, self.self_citations)]:
             logging.info("Writing out citation analysis to {}".format(cur_out_fn))
             with open(cur_out_fn, 'w') as fout:
-                fout.write("{}\n{}".format(','.join(self.header),
+                fout.write("{}\n{}".format(','.join(header),
                                            "\n".join([','.join(map(str,
                                                                    [year,
                                                                     year_record["male"],
                                                                     year_record["female"],
                                                                     year_record["unknown"]]))
                                                       for (year, year_record)
-                                                      in sorted(dict(self.data).iteritems())])))
+                                                      in sorted(dict(data).iteritems())])))
 
 
 if __name__ == "__main__":
@@ -108,6 +109,7 @@ if __name__ == "__main__":
         paper_cnt = 0
 
         for paper in tqdm(lazy_paper_reader(json_fn)):
+            paper_cnt += 1
             for analysis in analyses:
                 analysis.add_paper(paper)
 
