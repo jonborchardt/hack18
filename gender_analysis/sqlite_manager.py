@@ -40,7 +40,7 @@ class Sqlite_Database:
         """
         self.conn = sqlite3.connect(self.db_filename)
         if not self.read_only:
-            self.conn.execute('CREATE TABLE papers (paper_id INTEGER PRIMARY KEY, author_name TEXT, author_gender TEXT)')
+            self.conn.execute('CREATE TABLE papers (paper_id INTEGER PRIMARY KEY, author_name TEXT, author_gender TEXT, venue TEXT, year INTEGER)')
         return self
 
     def get_paper_data(self, paper_id):
@@ -75,11 +75,12 @@ class Sqlite_Database:
         genders = ";;;".join([author['gender']
                               for author
                               in authors])
-
-        self.conn.execute("INSERT INTO papers (paper_id, author_name, author_gender) VALUES (?, ?, ?)",
+        self.conn.execute("INSERT INTO papers (paper_id, author_name, author_gender, venue, year) VALUES (?, ?, ?, ?, ?)",
                           (paper_id,
                            names,
-                           genders))
+                           genders,
+                           paper["venue"],
+                           int(paper["year"])))
 
 
     def __exit__(self, *args):
