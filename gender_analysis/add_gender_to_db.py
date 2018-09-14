@@ -23,7 +23,7 @@ import sqlite3
 
 # Local imports
 from add_gender import lazy_paper_reader
-from sqlite_manager import sqlite_database
+from sqlite_manager import Sqlite_Database
 #=-----
 
 if __name__ == "__main__":
@@ -41,7 +41,7 @@ if __name__ == "__main__":
     logging.info("Adding gender...")
     paper_cnt = 0
 
-    with sqlite_database(out_fn) as db:
+    with Sqlite_Database(out_fn, read_only = False) as db:
         for paper in tqdm(lazy_paper_reader(inp_fn)):
             paper_cnt += 1
             db.add_paper(paper)
