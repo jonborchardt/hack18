@@ -42,10 +42,12 @@ if __name__ == "__main__":
         logging.basicConfig(level = logging.INFO)
 
     gender_dict = defaultdict(lambda: defaultdict(lambda: 0))
+    gender_by_year = defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: 0)))
 
     for paper in tqdm(lazy_paper_reader(inp_fn)):
         for author in paper["authors"]:
             gender_dict[author["gender"]][author["first_name"]] += 1
+            gender_by_year[author["gender"]][paper["year"]][author["first_name"]] += 1
 
     for gender in gender_dict:
         cur_fn = os.path.join(out_fn, "{}.csv".format(gender))

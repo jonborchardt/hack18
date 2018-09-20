@@ -47,20 +47,26 @@ class Sqlite_Database:
         """
         Get a list of genders of a given paper id.
         """
-        db_genders_ls = self.conn.execute("select author_gender,author_name FROM papers where paper_id='{}'".format(paper_int_id(paper_id))).fetchall()
+        db_genders_ls = self.conn.execute("select * FROM papers where paper_id='{}'".format(paper_int_id(paper_id))).fetchall()
+
         if not db_genders_ls:
-            return ([], [])
+            return None
         assert(len(db_genders_ls) == 1)
-        genders, authors = db_genders_ls[0]
+        paper_id, authors, genders, venue, year = db_genders_ls[0]
 
         if genders:
             gender_split = genders.split(';;;')
             authors_split = authors.split(';;;')
             assert(len(gender_split) == len(authors_split))
-            return gender_split, authors_split
+            authors = [{"name": name, "gender": gender}
+                       for (name, gender) in zip(authors_split, gender_split)]
         else:
-            assert (not authors)
-            return ([], [])
+            authors = []
+
+        return {"id": paper_id,
+                "authors": authors,
+                "venue": venue,
+                "year": year}
 
     def add_paper(self, paper):
         """
