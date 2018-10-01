@@ -62,7 +62,9 @@ if __name__ == "__main__":
 
         # add first and last author stats
         if cur_authors:
-            cur_year_record.first_author[cur_authors[0]["gender"]] += 1
+            if len(cur_authors) > 1:
+                # Avoid counting a single author as "junior"
+                cur_year_record.first_author[cur_authors[0]["gender"]] += 1
             cur_year_record.last_author[cur_authors[-1]["gender"]] += 1
 
         # all authors stats

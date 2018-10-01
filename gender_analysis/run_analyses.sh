@@ -9,8 +9,8 @@ set -e
 
 mkdir -p ${2}/common_names
 
-echo "common names..."
-python count_names_by_gender.py  --in=$1  --out=$2/common_names/
+# echo "common names..."
+# python count_names_by_gender.py  --in=$1  --out=$2/common_names/
 
 echo "gender by year..."
 python gender_count_by_year.py --in=$1  --out=$2/gender_by_year.csv
