@@ -1,8 +1,6 @@
 """ Usage:
     add_gender --json=JSON_FILE --db=DB_FILE --out=OUTPUT_FILE [--debug]
 
-Add a gender column to the an S2 input file (json lines), output written to a
-new *sqlite* file.
 """
 # Set default encoding to utf8
 import sys
@@ -38,6 +36,7 @@ class Out_Analysis:
         Initialize analysis.
         """
         self.db = db
+        self.miss_cnt = 0
         self.data = defaultdict(lambda: defaultdict(lambda: 0))
         self.self_citations = defaultdict(lambda: defaultdict(lambda: 0))
         self.base_dir = base_dir
@@ -64,14 +63,19 @@ class Out_Analysis:
         cur_year_self_citations_record = self.self_citations[year]
 
         for out_citation in paper["outCitations"]:
-            for cited_gender, cited_author in zip(*db.get_paper_data(out_citation)):
+            cited_paper = db.get_paper_data(out_citation)
+            if cited_paper is None:
+                # cited paper is outside the corpus
+                self.miss_cnt += 1
+                continue
+            for cited_author in cited_paper["authors"]:
                 # Count gender out citations
-                cur_year_record[cited_gender] += 1
+                cur_year_record[cited_author["gender"]] += 1
 
                 # Analyze self citations
-                if cited_author in cur_authors:
+                if cited_author["name"] in cur_authors:
                     # These author cited themselves
-                    cur_year_self_citations_record[cited_gender] += 1
+                    cur_year_self_citations_record[cited_author["gender"]] += 1
 
     def output_stats(self):
         for cur_out_fn, header, data in [(self.out_fn, self.header, self.data),
