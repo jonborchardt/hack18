@@ -22,6 +22,11 @@ from collections import defaultdict
 from operator import itemgetter
 import json
 from tqdm import tqdm
+import numpy as np
+import matplotlib.pyplot as plt
+import os
+from scipy.signal import savgol_filter
+from count_alphabetical import is_alphabetical
 
 # Local imports
 from add_gender import lazy_paper_reader
@@ -29,17 +34,12 @@ from add_gender import lazy_paper_reader
 
 from collections import namedtuple
 
-
-
 year_record = namedtuple("YearRecord",
                          ["total",
                           "first_author",
                           "last_author"])
 
-
-
 if __name__ == "__main__":
-
     # Parse command line arguments
     args = docopt(__doc__)
     inp_fn = args["--in"]
@@ -50,22 +50,21 @@ if __name__ == "__main__":
     else:
         logging.basicConfig(level = logging.INFO)
 
-
     gender_by_year = defaultdict(lambda: year_record(defaultdict(lambda: 0),
-                                                     defaultdict(lambda: 0),
-                                                     defaultdict(lambda: 0)))
+                                                defaultdict(lambda: 0),
+                                                defaultdict(lambda: 0)))
 
 
     for paper in tqdm(lazy_paper_reader(inp_fn)):
         cur_year_record = gender_by_year[paper["year"]]
         cur_authors = paper["authors"]
 
-        # add first and last author stats
-        if cur_authors:
-            if len(cur_authors) > 1:
+        # add first and last author stats -- only for non-alphabetical
+        if cur_authors and (len(cur_authors) > 1):
+            if not(is_alphabetical(paper)):
                 # Avoid counting a single author as "junior"
                 cur_year_record.first_author[cur_authors[0]["gender"]] += 1
-            cur_year_record.last_author[cur_authors[-1]["gender"]] += 1
+                cur_year_record.last_author[cur_authors[-1]["gender"]] += 1
 
         # all authors stats
         for cur_author in cur_authors:
@@ -77,6 +76,9 @@ if __name__ == "__main__":
               "first-author-male", "first-author-female", "first-author-unkonwn",\
               "last-author-male", "last-author-female", "last-author-unkonwn",\
               "total-male", "total-female", "total-unknown"]
+
+    records = sorted(dict(gender_by_year).iteritems())
+
     with open(out_fn, 'w') as fout:
         fout.write("{}\n{}".format(','.join(header),
                                    "\n".join([','.join(map(str,
@@ -91,7 +93,7 @@ if __name__ == "__main__":
                                                             year_record.total["female"],
                                                             year_record.total["unknown"]]))
                                               for (year, year_record)
-                                              in sorted(dict(gender_by_year).iteritems())])))
+                                              in records])))
 
 
 

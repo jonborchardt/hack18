@@ -29,8 +29,6 @@ from add_gender import lazy_paper_reader
 
 from collections import namedtuple
 
-
-
 year_record = namedtuple("YearRecord",
                          ["total",
                           "first_author",
@@ -43,6 +41,14 @@ def count_last_female(papers):
     return len([paper for paper in papers
                 if paper["authors"][-1]["gender"] == "female"])
 
+def count_gender(papers, gender):
+    """
+    Count number of authors of a given gender in papers.
+    """
+    return len([author
+                for paper in papers
+                for author in paper["authors"]
+                if author["gender"] == gender])
 
 def get_papers_by_year(papers, year):
     """
@@ -51,7 +57,6 @@ def get_papers_by_year(papers, year):
     return [paper for paper in papers
             if paper["year"] == year]
 
-
 def is_problematic_venue(venue_papers):
     """
     Assess if this is a problematic venue.
@@ -59,7 +64,7 @@ def is_problematic_venue(venue_papers):
     old = get_papers_by_year(venue_papers, 2001)
     new = get_papers_by_year(venue_papers, 2002)
     assert len(old) + len(new) == len(venue_papers)
-    return count_last_female(old) - count_last_female(new)
+    return count_gender(new, "male") - count_male(old, "male")
 
 def get_last_name(author):
     """
@@ -102,6 +107,12 @@ if __name__ == "__main__":
         papers_by_venues = defaultdict(list)
         for paper in papers:
             papers_by_venues[paper["venue"]].append(paper)
+
+    logging.info("Checking male author count...")
+    sorted_male_venues = sorted([(venue, is_problematic_venue(venue_papers))
+                                 for venue, venue_papers in tqdm(papers_by_venues.iteritems(),
+                                                                 total = len(papers_by_venues))],
+                                key = itemgetter(1), reverse = True)
 
     logging.info("Checking alphabetical...")
     old_alph = filter(is_alphabetical,

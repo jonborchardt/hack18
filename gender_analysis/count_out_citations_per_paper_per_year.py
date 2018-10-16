@@ -1,8 +1,11 @@
 """ Usage:
     <file-name> --in=INPUT_FILE --out=OUTPUT_FILE [--debug]
 
-* Filter only articles published PubMed to the output file.
+Answer:
 
+1. Is the number (proportion) of female authors increasing?
+2. Is the number (proportion) of female first authors increasing?
+6. Bechedel
 """
 import sys
 # sys.setdefaultencoding() does not exist, here!
@@ -18,21 +21,13 @@ from docopt import docopt
 from collections import defaultdict
 from operator import itemgetter
 import json
+import os
 from tqdm import tqdm
+from collections import namedtuple
 
 # Local imports
 from add_gender import lazy_paper_reader
 #=-----
-
-from collections import namedtuple
-
-
-def normalize_source(source):
-    """
-    Normalize a paper source.
-    """
-    return source.lower().rstrip().lstrip()
-
 
 if __name__ == "__main__":
 
@@ -46,13 +41,21 @@ if __name__ == "__main__":
     else:
         logging.basicConfig(level = logging.INFO)
 
-    cnt = 0
-    with open(out_fn, 'w') as fout:
-        for paper in tqdm(lazy_paper_reader(inp_fn)):
-            if "medline" in map(normalize_source,
-                                paper["sources"]):
-                cnt +=1
-                fout.write("{}\n".format(json.dumps(paper)))
+    out_citations_dict = defaultdict(lambda: 0)
+    paper_cnt = defaultdict(lambda: 0)
 
-    logging.info("Wrote {} papers to {}".format(cnt, out_fn))
+    for paper in tqdm(lazy_paper_reader(inp_fn)):
+        citations_cnt = len(paper["outCitations"])
+        cur_year = paper["year"]
+        if citations_cnt:
+            out_citations_dict[cur_year] += len(paper["outCitations"])
+            paper_cnt[cur_year] +=1 
+
+
+    with open(out_fn, 'w') as fout:
+        fout.write(",".join(["year",
+                             "#out citations"]) + "\n")
+        fout.write("\n".join(["{},{}".format(year, float(cnt)/paper_cnt[year])
+                              for year, cnt in out_citations_dict.iteritems()]))
+
     logging.info("DONE")

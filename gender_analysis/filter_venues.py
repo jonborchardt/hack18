@@ -1,5 +1,5 @@
 """ Usage:
-    <file-name> --in=INPUT_FILE --out=OUTPUT_FILE [--debug]
+    <file-name> --in=INPUT_FILE --venues=VENUES --out=OUTPUT_FILE [--debug]
 
 * Filter only articles published PubMed to the output file.
 
@@ -41,6 +41,7 @@ if __name__ == "__main__":
     inp_fn = args["--in"]
     out_fn = args["--out"]
     debug = args["--debug"]
+    venues = map(normalize_source, args["--venues"].split(";;"))
     if debug:
         logging.basicConfig(level = logging.DEBUG)
     else:
@@ -49,8 +50,7 @@ if __name__ == "__main__":
     cnt = 0
     with open(out_fn, 'w') as fout:
         for paper in tqdm(lazy_paper_reader(inp_fn)):
-            if "medline" in map(normalize_source,
-                                paper["sources"]):
+            if normalize_source(paper["venue"]) in venues:
                 cnt +=1
                 fout.write("{}\n".format(json.dumps(paper)))
 
