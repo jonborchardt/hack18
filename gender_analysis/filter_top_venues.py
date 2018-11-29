@@ -1,5 +1,5 @@
 """ Usage:
-    <file-name> --in=INPUT_FILE --venues=VENUES_FILE --top=TOP_N --out=OUTPUT_FILE  [--debug]
+    <file-name> --in=INPUT_FILE --venues=VENUES_FILE --top=TOP_N --out=OUTPUT_FILE [--n=NUM_OF_PAPERS] [--debug]
 
 * Filter only articles published at one of the top n venues.
 """
@@ -18,13 +18,11 @@ from collections import defaultdict
 from operator import itemgetter
 import json
 from tqdm import tqdm
+from collections import namedtuple
 
 # Local imports
 from add_gender import lazy_paper_reader
 #=-----
-
-from collections import namedtuple
-
 
 def normalize_source(source):
     """
@@ -32,9 +30,7 @@ def normalize_source(source):
     """
     return source.lower().rstrip().lstrip()
 
-
 if __name__ == "__main__":
-
     # Parse command line arguments
     args = docopt(__doc__)
     inp_fn = args["--in"]
@@ -42,6 +38,9 @@ if __name__ == "__main__":
     debug = args["--debug"]
     venues_fn = args["--venues"]
     top_k = int(args["--top"])
+    num_of_papers = int(args["--n"]) if args["--n"] is not None \
+                    else None
+
     if debug:
         logging.basicConfig(level = logging.DEBUG)
     else:
@@ -50,10 +49,10 @@ if __name__ == "__main__":
     top_venues = dict([(k, None) for k in
                        [''.join(line.strip().split(',')[: -1])
                         for line in open(venues_fn)][: top_k]])
-
+    pdb.set_trace()
     cnt = 0
     with open(out_fn, 'w') as fout:
-        for paper in tqdm(lazy_paper_reader(inp_fn)):
+        for paper in tqdm(lazy_paper_reader(inp_fn), total = num_of_papers):
             if paper["venue"] in top_venues:
                 cnt +=1
                 fout.write("{}\n".format(json.dumps(paper)))
