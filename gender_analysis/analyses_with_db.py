@@ -42,7 +42,8 @@ class Out_Analysis:
         self.base_dir = base_dir
         self.out_fn = os.path.join(base_dir, "out_citation_analysis.csv")
         self.out_fn_self_citations = os.path.join(base_dir, "self_citation_analysis.csv")
-        self.header = ["year", "male-out-citations", "female-out-citations", "unknown-out-citations"]
+        self.header = ["year", "male-out-citations", "female-out-citations", "unknown-out-citations",
+                       "male->male", "male->female", "female->female", "female->male"]
         self.self_cite_header = ["year", "male-self-cite", "female-self-cite", "unknown-self-cite"]
 
     def get_description(self):
@@ -56,7 +57,7 @@ class Out_Analysis:
         Add a single paper to the analysis
         """
         year = paper["year"]
-        cur_authors = [author["name"]
+        cur_author_names = [author["name"]
                        for author
                        in paper["authors"]]
         cur_year_record = self.data[year]
@@ -73,9 +74,15 @@ class Out_Analysis:
                 cur_year_record[cited_author["gender"]] += 1
 
                 # Analyze self citations
-                if cited_author["name"] in cur_authors:
+                if cited_author["name"] in cur_author_names:
                     # These author cited themselves
                     cur_year_self_citations_record[cited_author["gender"]] += 1
+
+                # Count interactions
+                for citing_author in paper["authors"]:
+                    interaction = "{}->{}".format(citing_author["gender"],
+                                                  cited_author["gender"])
+                    cur_year_record[interaction] += 1
 
     def output_stats(self):
         for cur_out_fn, header, data in [(self.out_fn, self.header, self.data),
@@ -87,7 +94,12 @@ class Out_Analysis:
                                                                    [year,
                                                                     year_record["male"],
                                                                     year_record["female"],
-                                                                    year_record["unknown"]]))
+                                                                    year_record["unknown"],
+                                                                    year_record["male->male"],
+                                                                    year_record["male->female"],
+                                                                    year_record["female->female"],
+                                                                    year_record["female->male"],
+                                                                   ]))
                                                       for (year, year_record)
                                                       in sorted(dict(data).iteritems())])))
 
