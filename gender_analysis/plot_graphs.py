@@ -17,7 +17,6 @@ from scipy.signal import savgol_filter
 import numpy as np
 
 
-
 # Local imports
 from gender_count_by_year import year_record
 #=-----
@@ -72,9 +71,9 @@ def plot_stacked_bars(xticks, bars, width, interpolate, bracket_every, smooth, s
 
     if interpolate:
         from scipy.interpolate import interp1d
-        xticks_new = range(xticks[0], xticks[-1])
+        xticks_new = range(xticks[0], 2100)
         for bar_index, bar in enumerate(bars):
-            f = interp1d(xticks, bar, kind = "cubic")
+            f = interp1d(xticks, bar, kind = "cubic", fill_value = "extrapolate")
             bars[bar_index] = f(xticks_new)
         xticks = xticks_new
 
@@ -88,6 +87,7 @@ def plot_stacked_bars(xticks, bars, width, interpolate, bracket_every, smooth, s
         for bar_index, bar in enumerate(bars):
             bars[bar_index] = np.array(bar, dtype = float) / totals
 
+    pdb.set_trace()
     # Plot
     legend = plt_params["legend"]
     ps = []
@@ -126,6 +126,14 @@ def plot_authorship(year_records, dirname):
                        for _, year_record in year_records]
     unknown_authorship = [year_record.total["total-unknown"]
                           for _, year_record in year_records]
+    first_male_authorship = [year_record.total["first-author-male"]
+                       for _, year_record in year_records]
+    first_female_authorship = [year_record.total["first-author-female"]
+                       for _, year_record in year_records]
+    last_male_authorship = [year_record.total["last-author-male"]
+                       for _, year_record in year_records]
+    last_female_authorship = [year_record.total["last-author-female"]
+                       for _, year_record in year_records]
 
     # Plot counts
     author_count_filename = os.path.join(dirname, "authorship_counts.png")
@@ -147,16 +155,14 @@ def plot_authorship(year_records, dirname):
     plt.savefig(author_count_filename, bbox_inches = "tight")
     plt.clf()
 
-
     # Plot proportions
     author_proportion_filename = os.path.join(dirname, "authorship_proportions.png")
     logging.info("Writing to {}".format(author_proportion_filename))
-
     plot_stacked_bars(years,
                       [male_authorship, female_authorship],
                       width = 1,
                       interpolate = True,
-                      bracket_every = 5,
+                      bracket_every = -1,
                       smooth = True,
                       scale = True,
                       colors=["blue", "orange"],
@@ -169,6 +175,52 @@ def plot_authorship(year_records, dirname):
     plt.axhline(y = 50)
     plt.savefig(author_proportion_filename, bbox_inches = "tight")
     plt.clf()
+
+    # Plot first author proportions
+    first_author_proportion_filename = os.path.join(dirname, "first_authorship_proportions.png")
+    logging.info("Writing to {}".format(first_author_proportion_filename))
+
+    plot_stacked_bars(years,
+                      [first_male_authorship, first_female_authorship],
+                      width = 1,
+                      interpolate = True,
+                      bracket_every = 5,
+                      smooth = True,
+                      scale = True,
+                      colors=["blue", "orange"],
+                      plt_params = {"title": "First authorship proportions",
+                                    "ylabel": "% Papers",
+                                    "xlabel": "Year",
+                                    "legend": ("Male", "Female"),
+                                    "xtick_spacing": 10,
+                                    "y_factor": float(100)})
+    plt.axhline(y = 50)
+    plt.savefig(first_author_proportion_filename, bbox_inches = "tight")
+    plt.clf()
+
+    # Plot last author proportions
+    last_author_proportion_filename = os.path.join(dirname, "last_authorship_proportions.png")
+    logging.info("Writing to {}".format(last_author_proportion_filename))
+
+    plot_stacked_bars(years,
+                      [last_male_authorship, last_female_authorship],
+                      width = 1,
+                      interpolate = True,
+                      bracket_every = 5,
+                      smooth = True,
+                      scale = True,
+                      colors=["blue", "orange"],
+                      plt_params = {"title": "Last authorship proportions",
+                                    "ylabel": "% Papers",
+                                    "xlabel": "Year",
+                                    "legend": ("Male", "Female"),
+                                    "xtick_spacing": 10,
+                                    "y_factor": float(100)})
+    plt.axhline(y = 50)
+    plt.savefig(last_author_proportion_filename, bbox_inches = "tight")
+    plt.clf()
+
+
 
 
 def plot_collaboration(year_records, dirname):
@@ -389,7 +441,7 @@ if __name__ == "__main__":
                                       read_file(collab_fn))
 
     plot_authorship(year_records, out_dir)
-    plot_citation(year_records, out_dir)
-    plot_collaboration(year_records, out_dir)
+    # plot_citation(year_records, out_dir)
+    # plot_collaboration(year_records, out_dir)
 
     logging.info("DONE")

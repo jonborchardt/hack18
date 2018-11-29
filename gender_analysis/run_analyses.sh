@@ -24,4 +24,8 @@ python gender_count_by_year.py --in=$1  --out=$2/gender_by_year.csv
 # echo "collab..."
 # python analyze_collab.py  --in=$1 --out=$2/collab.csv
 
+# Plot graphs
+python plot_graphs.py --auth=./final-analysis/gender_by_year_non_ab.csv  --cites=./final-analysis/out_citation_analysis.csv --colab=./final-analysis/collab.csv   --out=./final-analysis/graphs/
+
+
 echo "DONE"
