@@ -1,5 +1,5 @@
 """ Usage:
-    add_gender --in=INPUT_FILE --out=OUTPUT_FILE [--debug]
+    add_gender --in=INPUT_FILE --out=OUTPUT_FILE [--n=NUM_OF_PAPERS] [--debug]
 
 Add a gender column to the an S2 input file (json lines), output written to a
 new *sqlite* file.
@@ -31,6 +31,9 @@ if __name__ == "__main__":
     args = docopt(__doc__)
     inp_fn = args["--in"]
     out_fn = args["--out"]
+    num_of_papers = int(args["--n"]) if args["--n"] is not None \
+                    else None
+
     debug = args["--debug"]
     if debug:
         logging.basicConfig(level = logging.DEBUG)
@@ -42,7 +45,7 @@ if __name__ == "__main__":
     paper_cnt = 0
 
     with Sqlite_Database(out_fn, read_only = False) as db:
-        for paper in tqdm(lazy_paper_reader(inp_fn)):
+        for paper in tqdm(lazy_paper_reader(inp_fn), total = num_of_papers):
             paper_cnt += 1
             db.add_paper(paper)
 

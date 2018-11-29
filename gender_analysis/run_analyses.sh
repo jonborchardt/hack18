@@ -4,28 +4,40 @@
 # Run all analyses on full data with gender
 set -e
 
-# echo "concat..."
-# cat ../../open-corpus/medline-clean-gender/s2-corpus-* > ../../open-corpus/medline-clean-gender.jsonl
+#0. Paper count
+echo "Counting papers"
+python paper_count_by_year.py --in=$1 --out=$2/paper_cnt.csv
 
-mkdir -p ${2}/common_names
+#1. Authorship
+echo "Authorship"
+python gender_count_by_year.py --in=$1  --out=$2/gender_by_year.csv
 
+#2. Collaboration
+echo "collab..."
+python analyze_collab.py  --in=$1 --out=$2/collab.csv
+
+#3. Citation
+# Generate SQL
+echo "generate sql..."
+python add_gender_to_db.py --in=$1  --out=./${1}.sqlite
+
+# Analyze with SQL
+echo "citations"
+python analyses_with_db.py --db=${1}.sqlite  --json=${1}  --out=${2}
+
+# Rarely used:
+# mkdir -p ${2}/common_names
 # echo "common names..."
 # python count_names_by_gender.py  --in=$1  --out=$2/common_names/
 
-echo "gender by year..."
-python gender_count_by_year.py --in=$1  --out=$2/gender_by_year.csv
+
+echo "DONE"
+
+
+# Deprecated:
 
 # echo "in citations by year..."
 # python in_citations_by_gender.py --in=$1 --out=$2/in_citation_by_year.csv
 
 # echo "out citations by year..."
 # python out_citations_by_gender.py --in=$1 --out=$2/out_citation_by_year.csv
-
-# echo "collab..."
-# python analyze_collab.py  --in=$1 --out=$2/collab.csv
-
-# Plot graphs
-python plot_graphs.py --auth=./final-analysis/gender_by_year_non_ab.csv  --cites=./final-analysis/out_citation_analysis.csv --colab=./final-analysis/collab.csv   --out=./final-analysis/graphs/
-
-
-echo "DONE"

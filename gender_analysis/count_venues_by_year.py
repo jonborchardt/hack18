@@ -1,5 +1,5 @@
 """ Usage:
-    <file-name> --in=INPUT_FILE --top=N_VENUES --out=OUTPUT_FILE [--debug]
+    <file-name> --in=INPUT_FILE --top=N_VENUES --out=OUTPUT_FILE  [--n=NUM_OF_PAPERS] [--debug]
 
 Answer:
 
@@ -36,6 +36,9 @@ if __name__ == "__main__":
     inp_fn = args["--in"]
     num_of_venues = int(args["--top"])
     out_fn = args["--out"]
+    num_of_papers = int(args["--n"]) if args["--n"] is not None \
+                    else None
+
     debug = args["--debug"]
     if debug:
         logging.basicConfig(level = logging.DEBUG)

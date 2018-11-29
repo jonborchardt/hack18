@@ -1,5 +1,5 @@
 """ Usage:
-    add_gender --json=JSON_FILE --db=DB_FILE --out=OUTPUT_FILE [--debug]
+    add_gender --json=JSON_FILE --db=DB_FILE --out=OUTPUT_FILE [--n=NUM_OF_PAPERS] [--debug]
 
 """
 # Set default encoding to utf8
@@ -110,6 +110,9 @@ if __name__ == "__main__":
     db_fn = args["--db"]
     json_fn = args["--json"]
     out_fn = args["--out"]
+    num_of_papers = int(args["--n"]) if args["--n"] is not None \
+                    else None
+
     debug = args["--debug"]
     if debug:
         logging.basicConfig(level = logging.DEBUG)
@@ -124,7 +127,7 @@ if __name__ == "__main__":
 
         paper_cnt = 0
 
-        for paper in tqdm(lazy_paper_reader(json_fn)):
+        for paper in tqdm(lazy_paper_reader(json_fn), total = num_of_papers):
             paper_cnt += 1
             for analysis in analyses:
                 analysis.add_paper(paper)

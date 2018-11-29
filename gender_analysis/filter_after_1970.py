@@ -1,5 +1,5 @@
 """ Usage:
-    <file-name> --in=INPUT_FILE --out=OUTPUT_FILE [--debug]
+    <file-name> --in=INPUT_FILE --out=OUTPUT_FILE [--n=NUM_OF_PAPERS] [--debug]
 
 * Filter only articles published after 1970 to the output file.
 
@@ -41,6 +41,9 @@ if __name__ == "__main__":
     inp_fn = args["--in"]
     out_fn = args["--out"]
     debug = args["--debug"]
+    num_of_papers = int(args["--n"]) if args["--n"] is not None \
+                    else None
+
     if debug:
         logging.basicConfig(level = logging.DEBUG)
     else:
@@ -48,7 +51,7 @@ if __name__ == "__main__":
 
     cnt = 0
     with open(out_fn, 'w') as fout:
-        for paper in tqdm(lazy_paper_reader(inp_fn)):
+        for paper in tqdm(lazy_paper_reader(inp_fn), total = num_of_papers):
             if paper["year"] >= 1970:
                 cnt +=1
                 fout.write("{}\n".format(json.dumps(paper)))
