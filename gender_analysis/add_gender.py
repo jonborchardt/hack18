@@ -5,9 +5,9 @@ Add a gender column to the an S2 input file (json lines), output written to a
 new file.
 """
 # Set default encoding to utf8
-import sys
-reload(sys) 
-sys.setdefaultencoding('UTF8')
+# import sys
+# reload(sys) 
+# sys.setdefaultencoding('UTF8')
 
 # External imports
 import logging
@@ -21,7 +21,7 @@ from tqdm import tqdm
 import json
 
 # Local imports
-from legenderary.leGenderary import leGenderary
+#from legenderary.leGenderary import leGenderary
 #=-----
 
 options = { 'male'          : 'male',
@@ -37,7 +37,7 @@ options = { 'male'          : 'male',
           }
 
 # Init leGenderary
-gender = leGenderary(options)
+#gender = leGenderary(options)
 
 def get_gender(full_name):
     """

@@ -7,11 +7,6 @@ Answer:
 2. Is the number (proportion) of female first authors increasing?
 6. Bechedel
 """
-import sys
-# sys.setdefaultencoding() does not exist, here!
-reload(sys)  # Reload does the trick!
-sys.setdefaultencoding('UTF8')
-
 # External imports
 import logging
 import pdb
@@ -22,11 +17,9 @@ from collections import defaultdict
 from operator import itemgetter
 import json
 from tqdm import tqdm
-import numpy as np
-import matplotlib.pyplot as plt
 import os
-from scipy.signal import savgol_filter
 from count_alphabetical import is_alphabetical
+
 
 # Local imports
 from add_gender import lazy_paper_reader
@@ -51,27 +44,27 @@ if __name__ == "__main__":
         logging.basicConfig(level = logging.INFO)
 
     paper_by_year = defaultdict(lambda: 0)
+    authorship_by_year = defaultdict(lambda: 0)
 
 
     for paper in tqdm(lazy_paper_reader(inp_fn)):
         cur_authors = paper["authors"]
+        paper_year = paper["year"]
 
         # add first and last author stats -- only for non-alphabetical
         if cur_authors:
-            paper_by_year[paper["year"]] += 1 
+            paper_by_year[paper_year] += 1
+            authorship_by_year[paper_year] += len(cur_authors)
 
     logging.info("Writing to {}".format(out_fn))
 
-    header = ["year", "num of papers"]
+    header = ["year", "num of papers", "authorship count"]
 
-    records = sorted(dict(paper_by_year).iteritems())
-
+    records = sorted(dict(paper_by_year).items())
 
     with open(out_fn, 'w') as fout:
         fout.write(','.join(header) + "\n")
-        for (year, year_cnt) in records:
-            fout.write("{},{}\n".format(year, year_cnt))
-
-
+        for (year, year_paper_cnt) in records:
+            fout.write("{},{},{}\n".format(year, year_paper_cnt, authorship_by_year[year]))
 
     logging.info("DONE")

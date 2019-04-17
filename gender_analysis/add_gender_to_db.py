@@ -4,11 +4,6 @@
 Add a gender column to the an S2 input file (json lines), output written to a
 new *sqlite* file.
 """
-# Set default encoding to utf8
-import sys
-reload(sys) 
-sys.setdefaultencoding('UTF8')
-
 # External imports
 import logging
 import pdb

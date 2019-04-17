@@ -1,12 +1,7 @@
 """ Usage:
-    add_gender --json=JSON_FILE --db=DB_FILE --out=OUTPUT_FILE [--n=NUM_OF_PAPERS] [--debug]
+    add_gender --json=JSON_FILE --db=DB_FILE --gender=GENDER_FN --out=OUTPUT_FILE [--n=NUM_OF_PAPERS] [--debug]
 
 """
-# Set default encoding to utf8
-import sys
-reload(sys) 
-sys.setdefaultencoding('UTF8')
-
 # External imports
 import logging
 import pdb
@@ -24,18 +19,21 @@ import os
 # Local imports
 from add_gender import lazy_paper_reader
 from sqlite_manager import Sqlite_Database
+from util import get_gender_prob, load_name_probs
+from gender_count_by_year import add_author
+from analyze_collab import add_collab
 #=-----
-
 
 class Out_Analysis:
     """
     Calculate out citation analysis per year
     """
-    def __init__(self, db, base_dir):
+    def __init__(self, db, gender_dict, base_dir):
         """
         Initialize analysis.
         """
         self.db = db
+        self.gender_dict = gender_dict
         self.miss_cnt = 0
         self.data = defaultdict(lambda: defaultdict(lambda: 0))
         self.self_citations = defaultdict(lambda: defaultdict(lambda: 0))
@@ -58,31 +56,38 @@ class Out_Analysis:
         """
         year = paper["year"]
         cur_author_names = [author["name"]
-                       for author
-                       in paper["authors"]]
+                            for author
+                            in paper["authors"]]
         cur_year_record = self.data[year]
         cur_year_self_citations_record = self.self_citations[year]
 
         for out_citation in paper["outCitations"]:
             cited_paper = db.get_paper_data(out_citation)
+            pdb.set_trace()
             if cited_paper is None:
                 # cited paper is outside the corpus
                 self.miss_cnt += 1
                 continue
             for cited_author in cited_paper["authors"]:
                 # Count gender out citations
-                cur_year_record[cited_author["gender"]] += 1
+
+                add_author(cur_year_record, self.gender_dict, cited_autor)
+#                cur_year_record[cited_author["gender"]] += 1
 
                 # Analyze self citations
                 if cited_author["name"] in cur_author_names:
                     # These author cited themselves
-                    cur_year_self_citations_record[cited_author["gender"]] += 1
+                    add_author(cur_year_self_citations_record,
+                               self.gender_dict, cited_author)
+#                    cur_year_self_citations_record[cited_author["gender"]] += 1
 
                 # Count interactions
                 for citing_author in paper["authors"]:
-                    interaction = "{}->{}".format(citing_author["gender"],
-                                                  cited_author["gender"])
-                    cur_year_record[interaction] += 1
+                    add_collab(cur_year_record, self.gender_dict,
+                               citing_author, cited_author)
+                    # interaction = "{}_{}".format(citing_author["gender"],
+                    #                               cited_author["gender"])
+                    # cur_year_record[interaction] += 1
 
     def output_stats(self):
         for cur_out_fn, header, data in [(self.out_fn, self.header, self.data),
@@ -95,19 +100,20 @@ class Out_Analysis:
                                                                     year_record["male"],
                                                                     year_record["female"],
                                                                     year_record["unknown"],
-                                                                    year_record["male->male"],
-                                                                    year_record["male->female"],
-                                                                    year_record["female->female"],
-                                                                    year_record["female->male"],
+                                                                    year_record["male_male"],
+                                                                    year_record["male_female"],
+                                                                    year_record["female_female"],
+                                                                    year_record["female_male"],
                                                                    ]))
                                                       for (year, year_record)
-                                                      in sorted(dict(data).iteritems())])))
+                                                      in sorted(dict(data).items())])))
 
 
 if __name__ == "__main__":
     # Parse command line arguments
     args = docopt(__doc__)
     db_fn = args["--db"]
+    gender_fn = args["--gender"]
     json_fn = args["--json"]
     out_fn = args["--out"]
     num_of_papers = int(args["--n"]) if args["--n"] is not None \
@@ -119,9 +125,11 @@ if __name__ == "__main__":
     else:
         logging.basicConfig(level = logging.INFO)
 
+    gender_dict = load_name_probs(gender_fn)
+
     # Run analyses
     with Sqlite_Database(db_fn) as db:
-        analyses = [analysis(db, out_fn)
+        analyses = [analysis(db, gender_dict, out_fn)
                     for analysis
                     in [Out_Analysis]]
 

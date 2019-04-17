@@ -1,5 +1,5 @@
 """ Usage:
-    <file-name> --in=INPUT_FILE --out=OUTPUT_FILE [--debug]
+    <file-name> --in=INPUT_FILE --out=OUTPUT_FILE [--total=TOTAL] [--debug]
 
 Answer:
 
@@ -7,10 +7,10 @@ Answer:
 2. Is the number (proportion) of female first authors increasing?
 6. Bechedel
 """
-import sys
-# sys.setdefaultencoding() does not exist, here!
-reload(sys)  # Reload does the trick!
-sys.setdefaultencoding('UTF8')
+# import sys
+# # sys.setdefaultencoding() does not exist, here!
+# reload(sys)  # Reload does the trick!
+# sys.setdefaultencoding('UTF8')
 
 # External imports
 import logging
@@ -35,6 +35,9 @@ if __name__ == "__main__":
     args = docopt(__doc__)
     inp_fn = args["--in"]
     out_fn = args["--out"]
+    total = int(args["--total"]) if args["--total"] is not None \
+            else None
+
     debug = args["--debug"]
     if debug:
         logging.basicConfig(level = logging.DEBUG)
@@ -44,10 +47,12 @@ if __name__ == "__main__":
     gender_dict = defaultdict(lambda: defaultdict(lambda: 0))
     gender_by_year = defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: 0)))
 
-    for paper in tqdm(lazy_paper_reader(inp_fn)):
+    for paper in tqdm(lazy_paper_reader(inp_fn), total = total):
         for author in paper["authors"]:
-            gender_dict[author["gender"]][author["first_name"]] += 1
-            gender_by_year[author["gender"]][paper["year"]][author["first_name"]] += 1
+            first_name = author["first_name"].strip()
+            if first_name:
+                gender_dict[author["gender"]][first_name] += 1
+                gender_by_year[author["gender"]][paper["year"]][first_name] += 1
 
     for gender in gender_dict:
         cur_fn = os.path.join(out_fn, "{}.csv".format(gender))
@@ -55,8 +60,8 @@ if __name__ == "__main__":
         with open(cur_fn, 'w') as fout:
             fout.write('\n'.join(["{},{}".format(name, count)
                                   for (name, count)
-                                  in sorted(gender_dict[gender].iteritems(),
-                                            key = lambda(key, value): value,
+                                  in sorted(gender_dict[gender].items(),
+                                            key = itemgetter(1),
                                             reverse = True)]))
 
     logging.info("DONE")

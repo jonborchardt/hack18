@@ -7,10 +7,6 @@ Answer:
 2. Is the number (proportion) of female first authors increasing?
 6. Bechedel
 """
-import sys
-# sys.setdefaultencoding() does not exist, here!
-reload(sys)  # Reload does the trick!
-sys.setdefaultencoding('UTF8')
 
 # External imports
 import logging
