@@ -13,8 +13,8 @@ echo "Authorship"
 python gender_count_by_year.py --in=$1 --gender=$2  --out=$3/authorship.csv
 
 # # #2. Collaboration
-echo "collab..."
-python analyze_collab.py  --in=$1 --gender=$2 --out=$3/collab.csv
+# echo "collab..."
+# python analyze_collab.py  --in=$1 --gender=$2 --out=$3/collab.csv
 
 # #3. Citation
 # # Generate SQL

@@ -46,8 +46,24 @@ def add_author(stats_dict: Dict, gender_dict: Dict, author: Dict):
     Add a single author gender to stats
     """
     author_gender = get_gender_prob(gender_dict, author)
+    uncertainty = max(author_gender.values())
     stats_dict["male"] += author_gender["male"]
     stats_dict["female"] += author_gender["female"]
+    stats_dict["count"] += 1
+    stats_dict["uncertainty"] += uncertainty
+    if author_gender["male"] > author_gender["female"]:
+        stats_dict["uncertainty_male"] += uncertainty
+        stats_dict["uncertainty_male_count"] += 1
+    else:
+        stats_dict["uncertainty_female"] += uncertainty
+        stats_dict["uncertainty_female_count"] += 1
+
+    if "uncertain" not in stats_dict:
+        stats_dict["uncertain"] = []
+    stats_dict["uncertain"].append(uncertainty)
+    if uncertainty < 0.7:
+        stats_dict["unsure"] += 1
+    return author_gender
 
 if __name__ == "__main__":
     # Parse command line arguments
@@ -84,7 +100,7 @@ if __name__ == "__main__":
         # all authors stats
         for cur_author in cur_authors:
             cur_first_name = cur_author["first_name"]
-            add_author(cur_year_record.total, gender_dict, cur_author)
+            author_gender = add_author(cur_year_record.total, gender_dict, cur_author)
 
             # Legacy:
             cur_year_record.unique[cur_author["gender"]].add(cur_first_name)
@@ -96,7 +112,7 @@ if __name__ == "__main__":
     header = ["year", \
               "first-author-male", "first-author-female", "first-author-unknown",\
               "last-author-male", "last-author-female", "last-author-unknown",\
-              "total-male", "total-female", "total-unknown", "unique-male", "unique-female", "unique-unknown", "total_initials"]
+              "total-male", "total-female", "total-unknown", "unique-male", "unique-female", "unique-unknown", "total_initials", "uncertainty", "count", "unsure", "uncertain_male", "uncertain_female"]
 
     records = sorted(dict(gender_by_year).items())
 
@@ -116,7 +132,13 @@ if __name__ == "__main__":
                                                             len(year_record.unique["male"]),
                                                             len(year_record.unique["female"]),
                                                             len(year_record.unique["unknown"]),
-                                                            year_record.total["initials"]]))
+                                                            year_record.total["initials"],
+                                                            year_record.total["uncertainty"],
+                                                            year_record.total["count"],
+                                                            year_record.total["unsure"],
+                                                            year_record.total["uncertainty_male"] / year_record.total["uncertainty_male_count"],
+                                                            year_record.total["uncertainty_female"] / year_record.total["uncertainty_female_count"],
+                                                           ]))
                                               for (year, year_record)
                                               in records])))
 
